@@ -170,7 +170,7 @@
 ### 方式一：源码运行（任意系统，需要 Node.js）
 
 ```bash
-git clone https://github.com/<你的账号>/daily-ledger.git
+git clone https://github.com/gyl2089928282-dot/daily-ledger.git
 cd daily-ledger
 npm start
 ```
