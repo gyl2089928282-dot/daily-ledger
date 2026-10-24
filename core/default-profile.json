@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "owner": "",
+    "school": "",
+    "major": "",
+    "grade": "",
+    "semester": "",
+    "note": "公用默认配置：只有占位课程，不含任何个人信息。学校、专业、年级、学习目标只是给你自己看的身份备注，默认不显示在页面上（要在标题栏显示就去「设置」勾那个开关）；课程、考期、目标、专项才是分析规则真正要用的东西。",
+    "updatedAt": "",
+    "goal": "",
+    "showIdentity": false
+  },
+  "ui": {
+    "tabs": {},
+    "modules": {},
+    "note": "界面开关：写 false 就关掉该项，留空/不写 = 全开。tabs 管页签（checkin 打卡 / asg 作业 / week 周复盘 / history 趋势 / milestones 节点 / plan 方案），modules 管页面内部的块（brief 提醒条 / focus 专项 / sleep 睡眠 / blocker 卡点 / courseProgress 课程打分 / stripAsg 状态条作业格 / stripExam 状态条考期格）。设置页本身不可关。"
+  },
+  "weeklyBudget": 15,
+  "weekAnchor": null,
+  "weekAnchorNo": 1,
+  "courseTarget": null,
+  "courses": [
+    {
+      "id": "c1",
+      "name": "课程一",
+      "full": "课程一（填全称）",
+      "exam": null,
+      "status": "未知",
+      "slot": ""
+    },
+    {
+      "id": "c2",
+      "name": "课程二",
+      "full": "课程二（填全称）",
+      "exam": null,
+      "status": "未知",
+      "slot": ""
+    },
+    {
+      "id": "c3",
+      "name": "课程三",
+      "full": "课程三（填全称）",
+      "exam": null,
+      "status": "未知",
+      "slot": ""
+    }
+  ],
+  "focus": {
+    "label": "",
+    "date": null,
+    "target": null,
+    "scoreMax": null,
+    "time": "",
+    "duration": "",
+    "units": {
+      "words": "",
+      "listen": "",
+      "paper": ""
+    },
+    "goals": {
+      "words": 0,
+      "listen": 0,
+      "paper": 0
+    },
+    "note": "专项 = 课程之外的第二战场，可选。label 留空则整块不显示。启用示例：{label:'四级', units:{words:'单词',listen:'精听',paper:'真题'}, goals:{words:700,listen:5}}；{label:'计算机二级', units:{words:'题量',listen:'错题复盘',paper:'模考'}}；{label:'考研数学', units:{words:'题量',listen:'专题',paper:'套卷'}, goals:{words:200,listen:3}}；{label:'作品集', units:{words:'页数',listen:'迭代',paper:'整套'}}。没有专项就把 label 留空，分析里不会出现这一栏。"
+  },
+  "nodes": {
+    "examWindowStart": null,
+    "mentorMail": null,
+    "gapInventory": null,
+    "mentorLabel": "外部节点"
+  },
+  "project": {
+    "options": []
+  },
+  "milestones": [],
+  "weekTasks": {},
+  "gaps": [
+    "还没有填写任何课程、考期与目标 —— 这些属于使用者自己的方案，系统不替你猜"
+  ]
+}

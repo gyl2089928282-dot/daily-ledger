@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="o0RHzJcWUows9nphFwVrmu">
+<head data-page-node-id="xhG8vdeWakUKtuxXQXW65Y">
+<meta charset="UTF-8" data-page-node-id="DmvzOWTZDCRGKpFJChOjrP">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-page-node-id="B7GESHGzU4FY7AkfR2KKkq">
+<meta name="color-scheme" content="light dark" data-page-node-id="4XpjI4l7WmflEfE3We9rmL">
+<meta name="theme-color" content="#5F5F5F" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B1F24" media="(prefers-color-scheme: dark)">
+<!-- 主题抢跑：在样式表生效前先把 data-theme 摆好，否则每次打开都会先闪一下默认配色。
+     这里只读本机记忆；真正的来源是 profile.appearance.theme，app.js 解析方案后会再校正一次。
+     包在 try 里：隐私模式下 localStorage 会抛异常，不能因此让整页脚本挂掉。 -->
+<script>
+try{ var _theme = localStorage.getItem("ledger.theme"); if(_theme) document.documentElement.setAttribute("data-theme", _theme); }catch(e){}
+</script>
+<title>学业台账 · 学习计划与每日打卡</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%237C593B'/%3E%3Crect y='0' width='16' height='5' fill='%237CBE55'/%3E%3Crect y='5' width='16' height='2' fill='%235D9B3B'/%3E%3Crect x='3' y='9' width='3' height='2' fill='%23684A31'/%3E%3Crect x='9' y='11' width='4' height='2' fill='%23684A31'/%3E%3Crect x='6' y='7' width='2' height='2' fill='%238F6B49'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./app.css">
+</head>
+<body data-page-node-id="LU9DHH11fvdbGmDu5EDNul">
+<div class="wrap" data-page-node-id="rpktSFZzlNZt2m8F7xuHaQ">
+
+  <header class="top" data-page-node-id="FQFFTsnLW0VWH1Vz51pF03">
+    <div class="brand" data-page-node-id="WKHb1nHsdsHRnRoZq6iAdL">
+      <div class="mark" data-page-node-id="I1NrxOngyvU9RKLwHqaNx5"><span data-page-node-id="a672hYcSXESo3JNEuIOcYj"></span></div>
+      <div data-page-node-id="ehpFsUdakFhCmXuHfA7597">
+        <h1 data-page-node-id="TRCl1I8GPbDQZBoF8v0ZRS">学业台账</h1>
+        <div class="sub" id="brandSub" data-page-node-id="mCSkpkOrt3WQx0cNrnfkXF">学习计划 · 每日打卡 · 周复盘</div>
+      </div>
+    </div>
+    <div class="head-right" data-page-node-id="RT9bwsNEoUPhafRdKknFck">
+      <span class="sync" id="syncState" data-state="off" hidden data-page-node-id="mLCPGBMKtAx2WCOBNWoFQM"><i data-page-node-id="x5BS5v8xKaTjfd9qLCgQcY"></i><b data-page-node-id="VHiosylt33dxCLjj48PvxP">连接中</b></span>
+      <button class="btn sm ghost" id="importBtn" onclick="document.getElementById('importFile').click()" data-page-node-id="OVCWsCvQxmo1oWrXE2sUx2">导入</button>
+      <button class="btn sm ghost" onclick="exportAll()" data-page-node-id="YZ4XqCcirMNUuAdxrkGQkK">导出全部</button>
+      <a class="btn sm ghost" href="./admin.html" data-page-node-id="opConsole0000000000001">操作台</a>
+      <input type="file" id="importFile" accept=".json,application/json" hidden data-page-node-id="zoRCl837CTwngSE8LrUJ6N">
+    </div>
+  </header>
+
+  <div class="brief hidden" id="briefBar" data-page-node-id="7a9xOzVuhsgZRWgB80WB6G"></div>
+
+  <div class="brief hidden" id="authBar" data-page-node-id="authBar0000000000001"></div>
+
+  <div class="strip" id="todayStrip" data-page-node-id="7vIEbqwSh6EHCwo1KYVY8X"></div>
+
+  <div class="tabs" id="tabBar" role="tablist" aria-label="台账分区" data-page-node-id="4je1MXCyF79oQyxSUtD5Ge">
+    <button class="on" role="tab" aria-selected="true" data-tab="checkin" data-page-node-id="vS1gqauCKq8LzCbmJiGM2n">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" data-page-node-id="eCQ5DijB0Q6ltgmAyQW6D2"><path fill="currentColor" d="M12 2h2v1H12zM11 3h2v1H11zM10 4h2v1H10zM9 5h2v1H9zM2 6h2v1H2zM8 6h2v1H8zM2 7h2v1H2zM7 7h2v1H7zM3 8h2v1H3zM6 8h2v1H6zM4 9h3v1H4zM5 10h2v1H5z"/></svg>
+      今日打卡
+    </button>
+    <button role="tab" aria-selected="false" data-tab="asg" data-page-node-id="aHk9e2h0h0H2Ai9zp9SJeo">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" data-page-node-id="4ww5DWsH3VCMLiz4Ap8sNC"><path fill="currentColor" d="M2 1h12v1H2zM2 2h2v1H2zM12 2h2v1H12zM2 3h2v1H2zM5 3h6v1H5zM12 3h2v1H12zM2 4h2v1H2zM12 4h2v1H12zM2 5h2v1H2zM5 5h6v1H5zM12 5h2v1H12zM2 6h2v1H2zM12 6h2v1H12zM2 7h2v1H2zM5 7h6v1H5zM12 7h2v1H12zM2 8h2v1H2zM12 8h2v1H12zM2 9h12v1H2z"/></svg>
+      作业台账 <span class="badge hidden" id="asgBadge" data-page-node-id="Q4zn1ylBMYyWQtrz557G3i"></span>
+    </button>
+    <button role="tab" aria-selected="false" data-tab="week" data-page-node-id="NOjRW79Q480Du8BxqrkDry">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" data-page-node-id="Rz6rwCuxxHgtFzNI9AJrYL"><path fill="currentColor" d="M2 1h12v1H2zM2 2h1v1H2zM13 2h1v1H13zM2 3h12v1H2zM2 4h1v1H2zM13 4h1v1H13zM2 5h1v1H2zM4 5h2v1H4zM7 5h2v1H7zM10 5h2v1H10zM13 5h1v1H13zM2 6h1v1H2zM13 6h1v1H13zM2 7h1v1H2zM4 7h2v1H4zM7 7h2v1H7zM10 7h2v1H10zM13 7h1v1H13zM2 8h1v1H2zM13 8h1v1H13zM2 9h12v1H2z"/></svg>
+      本周复盘
+    </button>
+    <button role="tab" aria-selected="false" data-tab="history" data-page-node-id="9FvBkPCxrk7H8GYM3EPc3v">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" data-page-node-id="vN8QbLoDnlhl8cpsCBpJoI"><path fill="currentColor" d="M2 1h1v1H2zM13 1h1v1H13zM2 2h1v1H2zM13 2h1v1H13zM2 3h1v1H2zM13 3h1v1H13zM2 4h1v1H2zM10 4h1v1H10zM13 4h1v1H13zM2 5h1v1H2zM10 5h1v1H10zM13 5h1v1H13zM2 6h1v1H2zM7 6h1v1H7zM10 6h1v1H10zM13 6h1v1H13zM2 7h1v1H2zM7 7h1v1H7zM10 7h1v1H10zM13 7h1v1H13zM2 8h1v1H2zM7 8h1v1H7zM10 8h1v1H10zM13 8h1v1H13zM2 9h11v1H2z"/></svg>
+      记录趋势
+    </button>
+    <button role="tab" aria-selected="false" data-tab="milestones" data-page-node-id="F1G4Q3fSJXs1VVygAppRGf">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" data-page-node-id="wIiHULO63C4M8iuaq0xbsM"><path fill="currentColor" d="M2 0h1v1H2zM2 1h12v1H2zM2 2h1v1H2zM13 2h1v1H13zM2 3h1v1H2zM13 3h1v1H13zM2 4h1v1H2zM13 4h1v1H13zM2 5h1v1H2zM11 5h3v1H11zM2 6h1v1H2zM2 7h1v1H2zM2 8h1v1H2zM2 9h2v1H2z"/></svg>
+      节点
+    </button>
+    <button role="tab" aria-selected="false" data-tab="plan" data-page-node-id="tabPlan0000000000000001">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M7 1h2v1H7zM6 2h4v1H6zM5 3h6v1H5zM4 4h8v1H4zM2 5h12v1H2zM4 6h8v1H4zM5 7h6v1H5zM6 8h4v1H6zM7 9h2v1H7z"/></svg>
+      我的方案
+    </button>
+    <!-- 设置页永远在：把别的页签全关了，也得留一个能改回来的入口 -->
+    <button role="tab" aria-selected="false" data-tab="settings">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M6 1h4v1H6zM5 2h6v1H5zM4 3h8v1H4zM2 4h4v1H2zM10 4h4v1h-4zM2 5h4v1H2zM10 5h4v1h-4zM3 6h2v1H3zM11 6h2v1h-2zM4 7h1v1H4zM11 7h1v1h-1zM4 8h1v1H4zM11 8h1v1h-1zM3 9h2v1H3zM11 9h2v1h-2zM2 10h4v1H2zM10 10h4v1h-4zM4 11h8v1H4zM5 12h6v1H5zM6 13h4v1H6z"/></svg>
+      设置
+    </button>
+  </div>
+
+  <!-- ══════════ 今日打卡 ══════════ -->
+  <section class="panel on" id="panel-checkin" data-page-node-id="jsgTlV5Q5dl3KEfb77GhFf">
+    <!-- 使用者自己写的学期目标：没填就整条不出现 -->
+    <div class="note hidden" id="goalNote"></div>
+    <div class="card" data-page-node-id="HthSgPUUL42rBN0DlBNnFA">
+      <div class="card-h" data-page-node-id="uT1G1Qwsr5vusiu1FrrkUY">
+        <h2 data-page-node-id="3PzeWQjCcinhlkOhBVzB2B">今天要填的六项 <span class="tag ic-only" title="填完大约 2 分钟" data-page-node-id="2EZtitT88r7VMD3Y945hPS"><i class="ic ic-clock" aria-hidden="true"></i></span><button class="info" data-tip="只填真实发生的：没做就选「没动」。为了让曲线好看而填，会直接导致后面的建议失真。" aria-label="只填真实发生的：没做就选「没动」。为了让曲线好看而填，会直接导致后面的建议失真。"></button></h2>
+        <span class="save-state" id="saveHint" aria-live="polite" data-page-node-id="0IKFQXwVxcLLYK2IYwV55A"></span>
+      </div>
+
+      <div class="grid2" data-page-node-id="1LDO2HdaAEH21kHITjbtsc">
+        <div data-page-node-id="tl8WCs4oaiCl61UipIzfZF">
+          <div class="field" data-page-node-id="HDVqYxtm5w3cMIQYoZkfJF">
+            <label for="d-date" data-page-node-id="fpTdBE54gRINpBUMFXBsES">日期</label>
+            <input type="date" id="d-date" data-page-node-id="coc00Ap4SeUGxir9HPirN7">
+          </div>
+          <div class="field" data-page-node-id="poH4UnwafEDiLxZypjqt66">
+            <label for="d-hours" data-page-node-id="l3ZpRSckD6vwNkzEAcxbPG">今天课外投入总时长（小时）</label>
+            <input type="number" id="d-hours" min="0" max="16" step="0.25" placeholder="例如 3.5" data-page-node-id="1BYmYCbpzYAPj2gKygLIZF">
+          </div>
+          <div class="field" data-page-node-id="jUaHkMcthzxfSsTLfuFJOc">
+            <label for="d-focus" data-page-node-id="AfEUWSEFRaMVxsry3XGFUa">今天的主攻对象</label>
+            <select id="d-focus" data-page-node-id="XwCP3CGhzd0neUHFdILOD8">
+              <option value="" data-page-node-id="SEoESwhwDSRVIHI2OiJwiw">未选</option>
+              <option value="hardcourse" data-page-node-id="Ysp75wAAyvdnJef5CkRR5E">课程复习 / 诊断</option>
+              <option value="homework" data-page-node-id="yVL9m1gymqzbOZwPDu08p4">写作业</option>
+              <option value="cet" data-page-node-id="rGnkVFwopYA4Lvix0JJsmf">专项推进</option>
+              <option value="mentor" data-page-node-id="OyTRc7Jp1nLz9M6nSy3Cde">实习 / 申请 / 材料</option>
+              <option value="project" data-page-node-id="UXOXE8Y61jfY5SaB5r0Am0">项目 / 科研</option>
+              <option value="software" data-page-node-id="dl56twM0Fo9O7bvIK0QMuV">工具 / 软件</option>
+              <option value="other" data-page-node-id="qvutkPqn3hlho3y78CXjX4">其他</option>
+              <option value="rest" data-page-node-id="VGEQV0vNm6OQPNAvFo0bNx">休息</option>
+            </select>
+          </div>
+        </div>
+        <div data-page-node-id="dXTXW3tb66heRUuR3pDwFh">
+          <div class="field" id="focusCounts" data-page-node-id="PHLDpBecmbyzgOmDEvOQbZ">
+            <label id="focusTitle" data-page-node-id="uVB2OjFZskqtDASPffCllZ">专项 · 今天</label>
+            <div class="row" style="gap:8px" data-page-node-id="THZpX8T41Ej9W2vlLAoDfT">
+              <div style="flex:1;min-width:70px" data-page-node-id="UenTGmjPLahSpaGkBENuyU">
+                <input type="number" id="d-words" min="0" step="10" placeholder="计数一" data-page-node-id="xQ48BiNHbQE7Zi0ypDHB5C">
+              </div>
+              <div style="flex:1;min-width:64px" data-page-node-id="wAgwbfwC6FyDrRDHlus3ef">
+                <input type="number" id="d-listen" min="0" step="1" placeholder="计数二" data-page-node-id="gORHgXGbHHVgDQwOKQmM31">
+              </div>
+              <div style="flex:0 0 108px" data-page-node-id="isMCadK0Xt5WkLlsKuOyuI">
+                <select id="d-paper" data-page-node-id="0jIGOsh1FXuFGpDjNcedz0">
+                  <option value="0" data-page-node-id="RHjog1BHInGZ5t9yL352E1">未做</option>
+                  <option value="1" data-page-node-id="ClYQogMXLKT51B3mjFzB81">做了 1 套</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="grid2" style="gap:12px" data-page-node-id="1hUDmpqBO4QIPLIuGG8L5t">
+            <div class="field" id="focusScoreField" data-page-node-id="rdOlUYJLVEtHU8SXblswha">
+              <label for="d-score" id="focusScoreLabel" data-page-node-id="5bUb29FwNsVb5QIb6JEjdJ">本次得分（可空）</label>
+              <input type="number" id="d-score" min="0" step="1" placeholder="留空=未出分" data-page-node-id="pcv49rWfeyjB7eymGFBdCT">
+            </div>
+            <div class="field" id="sleepField" data-page-node-id="ZaI9016aQEyHnh4qC2kcGE">
+              <label for="d-sleep" data-page-node-id="hr60WrB5ZYDHy6ipYjygeA">睡眠（小时）</label>
+              <input type="number" id="d-sleep" min="0" max="14" step="0.5" placeholder="建议填" data-page-node-id="EL0YiiGwh5QCmCaktcdLsE">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 课程推进打分整块：在「功能选择」里关掉后连带标题一起收起 -->
+      <div id="courseProgressBlock">
+        <div class="hr" data-page-node-id="PVEdbbTEMKZthZJxoKE2XM"></div>
+        <label class="lbl" data-page-node-id="eek6LYKWxZlPPCSqL3NpKh">各课今天推进到哪（0 没动 · 1 看了一点 · 2 复习做题 · 3 完整推进）</label>
+        <div id="courseRows" data-page-node-id="nzMN9KCbPhFYhNi8OIkqmC"></div>
+      </div>
+
+      <div class="hr" data-page-node-id="HYGhvBBLbPzFwrACRU1xgF"></div>
+
+      <div class="field" id="blockerField" data-page-node-id="2rNhLWH34Z6R4tlXzAhomQ">
+        <label for="d-blocker" data-page-node-id="sCFA4orfpodAzbjKnDkWAG">今天卡在哪 / 有什么意外</label>
+        <textarea id="d-blocker" placeholder="例：某章推导没跟上；听力后半段走神；软件里装配约束报错"></textarea>
+      </div>
+
+      <div class="row" style="justify-content:flex-end;margin-top:14px" data-page-node-id="K1b2KFoJcAqblFCF364ezl">
+        <button class="btn ghost" onclick="resetForm()" data-page-node-id="lJYG9n7CpDB0GYin5A2GEP">清空</button>
+        <button class="btn primary" id="saveBtn" onclick="saveDay()" data-page-node-id="5KzGCelJYAK8mcpZMBznfq">保存并分析</button>
+      </div>
+    </div>
+
+    <div id="analysisOut" data-page-node-id="oOw7wpOAlEZ7FEFwa7ZfV2"></div>
+  </section>
+
+  <!-- ══════════ 作业台账 ══════════ -->
+  <section class="panel" id="panel-asg" data-page-node-id="qqClmKsl6AEzT9KTTubBsC">
+    <div class="card" data-page-node-id="DURo3LDgsFdN0vHqCGJ549">
+      <div class="card-h" data-page-node-id="IuxfO1PwJhjsVU4Rr64IQ7">
+        <h2 data-page-node-id="tIUKAlAbdl05O01HdM3Ybz">作业台账 <span class="tag" id="asgCourseTag" data-page-node-id="E0FBndQwughzd8QG9yqobH">按课程</span><button class="info" data-tip="这一栏只记作业本身：布置了什么、什么时候交、做没做。作业状态会自动进入今日分析——逾期会挤掉其他建议。" aria-label="这一栏只记作业本身：布置了什么、什么时候交、做没做。作业状态会自动进入今日分析——逾期会挤掉其他建议。"></button></h2>
+        <div class="row" data-page-node-id="WFsCf6N7HbdZRYLSKIX6nE">
+          <button class="btn sm ghost" onclick="copyReminder()" data-tip="把今天要做的作业整理成一段文字，复制后可以直接发到微信或备忘录" aria-label="复制提醒文本" data-page-node-id="5xjXaOwa9z6CUTRkSV9ENL"><i class="ic ic-copy" aria-hidden="true"></i>复制</button>
+          <button class="btn sm ghost" onclick="exportAsg()" data-tip="导出一份 JSON，给每天的定时提醒用（见下方接法）" aria-label="导出作业清单" data-page-node-id="OHEHozoZtEB9LvGU5rEh5y"><i class="ic ic-dl" aria-hidden="true"></i>导出</button>
+        </div>
+      </div>
+      <div class="asg-stat" id="asgStats" data-page-node-id="A57D1Ej9d6wtFkJa7NSFnf"></div>
+      <div class="note note-line" data-page-node-id="rlXfsGretYIVIwzUqW9ZQJ">
+        定时任务接法：把导出的 JSON 放到 <span class="kbd" data-page-node-id="2QvGrlCiKg1gBMDHZnOSK3">项目目录\assignments.json</span>
+        <button class="info" data-tip="和 launch.js 同级。定时任务读这个文件就能生成每天的作业提醒，不需要浏览器一直开着。" aria-label="和 launch.js 同级。定时任务读这个文件就能生成每天的作业提醒，不需要浏览器一直开着。"></button>
+      </div>
+      <div id="exportAge" style="margin-top:9px" data-page-node-id="35cShk42zhtilonawhO7n5"></div>
+    </div>
+
+    <div class="card" data-page-node-id="CxiVRvlEC4iCe1uhiYwCWg">
+      <h2 data-page-node-id="BztKCVhE7HNs4E22KaFujQ">添加作业<button class="info" data-tip="只填前四项就够用。标题写具体点：「第 5 章习题 3/7/11」比「作业」有用得多。" aria-label="只填前四项就够用。标题写具体点：「第 5 章习题 3/7/11」比「作业」有用得多。"></button></h2>
+      <div class="asg-add" data-page-node-id="RE7BW7sZEznu8H4tOs1Rzm">
+        <select id="a-course" data-page-node-id="GoEakgA0VjI1AgofFJqrFo"></select>
+        <input type="text" id="a-title" placeholder="作业名，例：第5章习题 3/7/11" data-page-node-id="hysBFzi2Ej5ESlm3wdgrHs">
+        <input type="date" id="a-due" title="截止日期" data-page-node-id="NuoMHHSWc7uJNjmquEfCod">
+        <input type="number" id="a-est" min="0" step="0.5" placeholder="预计 h" data-page-node-id="Tqsny35wSlzKnG9d7CWS6q">
+        <button class="btn primary" onclick="addAsg()" id="a-add" data-page-node-id="QHSblHIDL5Z24GKkPgR8a1">添加</button>
+      </div>
+      <div class="grid3" style="margin-top:12px" data-page-node-id="yQgoQkIBPxNEytJr860wQ2">
+        <div data-page-node-id="knDiVaDTKqWSRIQcgBye7m">
+          <label class="lbl" for="a-assigned" data-page-node-id="aNXU90bEVIEAoYjJ7dFDoC">布置日期（可选）</label>
+          <input type="date" id="a-assigned" data-page-node-id="sJjTC6SAzQDRuGkrvmsFVr">
+        </div>
+        <div data-page-node-id="fHAoZnjP6c9qGkVHOmq1Rv">
+          <label class="lbl" for="a-note" data-page-node-id="27YPezKqZvFfhdf7zxbZxB">备注（可选）</label>
+          <input type="text" id="a-note" placeholder="例：下周实验课要交预习报告" data-page-node-id="tzSPO1yfuwgNqwaw59Iw0j">
+        </div>
+        <div data-page-node-id="hmlQ1rIJjyszwmwqsyCr5c">
+          <label class="lbl" for="a-pri" data-page-node-id="KahzFya16JYkvWY5zjfYPu">优先级</label>
+          <select id="a-pri" data-page-node-id="XuakXsWJuu6xFKy4Foo0F9">
+            <option value="1" data-page-node-id="O5Y9ENB9ipFARoiCZX8poE">普通</option>
+            <option value="2" data-page-node-id="XgFXxXzNp2cAAN8FqCmvRQ">重要（计入期末/平时分）</option>
+            <option value="0" data-page-node-id="ZHa8QMMuhgO2viMmBXyMVd">次要</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-page-node-id="IFcYSPRGMG26XhnGrPDdAF">
+      <div class="card-h" data-page-node-id="wGIB4UFpJKeLYH58qoeNj2">
+        <h2 data-page-node-id="0hlNwxPWIpdctiiB5Jcm9j">有什么作业要做</h2>
+        <span class="tag" id="pendCount" data-page-node-id="IAJbWnjz8QIX4CvkbUx2t2"></span>
+      </div>
+      <div class="filter-row" id="filters" data-page-node-id="2VMcNbNOaQHHx8cQWv7HQX">
+        <span class="fchip on" data-f="all" role="button" tabindex="0" data-page-node-id="ly51vwgjzwpNEpAE8TlLHp">全部待做</span>
+        <span class="fchip" data-f="overdue" role="button" tabindex="0" data-page-node-id="SsRl9tMfbGM21r0TNyDm7R">已逾期</span>
+        <span class="fchip" data-f="week" role="button" tabindex="0" data-page-node-id="5oHeQwko9H6OCTlnfL2KGm">7 天内</span>
+        <span class="fchip" data-f="nohome" role="button" tabindex="0" data-page-node-id="eSAX2Wu1HFeuHR3yN8OUy8">未定截止</span>
+      </div>
+      <div id="pendList" data-page-node-id="CW8CT2jxOolGdJXOV4sWuF"></div>
+    </div>
+
+    <div class="card" data-page-node-id="bwoPSKxnMuhPjPvmRekBPp">
+      <div class="card-h" data-page-node-id="ejTa7ACEvtNQN8iNcA0acK">
+        <h2 data-page-node-id="Ff8qf8HUeU1Q7dSgXyPfoU">每科完成了什么</h2>
+        <span class="tag" id="doneCount" data-page-node-id="ZhlGx6rOQXykfySmfYgFHQ"></span>
+      </div>
+      <div id="doneList" data-page-node-id="T4KRLfCqkTbutJeNgXeVMI"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 本周复盘 ══════════ -->
+  <section class="panel" id="panel-week" data-page-node-id="3WQDgVNu0wU4xEcF7GkFK8">
+    <div class="card" data-page-node-id="UOlMEgh1jl1FwMIqqJlK4m">
+      <div class="card-h" data-page-node-id="Zq8NUhpAm14p2Elz9uMdyU">
+        <h2 data-page-node-id="z2RxncRTowikuz1vXxFLzC">本周负荷</h2>
+        <span class="tag" id="weekTag" data-page-node-id="DV0Ox0FXMFAXi6i8PNuwvO"></span>
+      </div>
+      <p class="hint">课外预算按 <b id="budgetHint" data-page-node-id="fZdiBdEfIgsKuCaXYx86MK">15 小时/周</b><button class="info" data-tip="这个数来自「我的方案」。实际低于预算不代表失败，只说明该在任务之间做取舍。" aria-label="这个数来自「我的方案」。实际低于预算不代表失败，只说明该在任务之间做取舍。"></button></p>
+      <div id="weekStats" data-page-node-id="7anDaGPQeTgCkl1irBMEwu"></div>
+    </div>
+
+    <div class="card" data-page-node-id="K7wPwDW7N59IMWp2LfACa0">
+      <h2 data-page-node-id="SvGaimvH61nJUGOVzjhrSZ">本周三项优先任务 <span class="tag ic-only" title="来自学期计划" data-page-node-id="uymNzkyuEfUY6eSK36hOVE"><i class="ic ic-flag" aria-hidden="true"></i></span><button class="info" data-tip="每周最多三项，这是硬约束。进度由打卡自动推算——未达成不等于你没做，可能只是漏记。" aria-label="每周最多三项，这是硬约束。进度由打卡自动推算——未达成不等于你没做，可能只是漏记。"></button></h2>
+      <div id="weekTasks" data-page-node-id="1vMMUP0DbA9sthaVVTMRMJ"></div>
+    </div>
+
+    <div class="card" data-page-node-id="AtjGDXuWfKxfLsDdFRu5Hf">
+      <h2 data-page-node-id="C0iDZdGa0zG3hXp1d7OO67">周复盘（周日 30 分钟）</h2>
+      <div class="field" data-page-node-id="czIHMbZ2n4zQk8veW7kITs">
+        <label for="w-hours" data-page-node-id="EgBCOYkEESdss4MOFd5zS7">1. 这周计划投入 vs 实际花了（小时）</label>
+        <input type="text" id="w-hours" placeholder="例：计划 15，实际 11" data-page-node-id="a4SmBgCA71SoAojAPjj5oX">
+      </div>
+      <div class="field" data-page-node-id="cQV9vBzByHxNdAN8F0Fh9F">
+        <label for="w-progress" data-page-node-id="h4ej0I62YoFNUDWIvZyNY6">2. 课程 / 作业 / 专项进展（用数字，别用「还行」）</label>
+        <textarea id="w-progress" placeholder="例：某门课推进到第 5 章；另一门诊断完了，弱在某一章；专项做了 2 次计时、错题 12 道；交了 3 份作业"></textarea>
+      </div>
+      <div class="field" data-page-node-id="8u18XcSsmi04X88UdC6OHo">
+        <label for="w-blocker" data-page-node-id="9AZHAwLkqARQISoomInaHV">3. 卡在哪（外部约束还是估时错）</label>
+        <textarea id="w-blocker" placeholder="例：周二周三晚上都有课，实际只有 5 个晚上能用；成套练习每次都比估时多花一倍"></textarea>
+      </div>
+      <div class="grid2" data-page-node-id="EJ5mH9jMHlDBTP2wI2oxq1">
+        <div class="field" data-page-node-id="PHRmMGH5MCnc1H7RiDBWfv">
+          <label for="w-reason" data-page-node-id="9AQvNRsD9HHE5NErMmX6BE">4. 没做完的，原因是哪一类</label>
+          <select id="w-reason" data-page-node-id="mHJkFB5nvZu8BM8K5Sxn7X">
+            <option value="" data-page-node-id="KuMh0ClKwFDiy7869jeMIe">未选</option>
+            <option value="estimate" data-page-node-id="vDQSHoN0MGKhFMjvJ8TtYS">估时错了</option>
+            <option value="external" data-page-node-id="vTPPz9wCfYGdbE3zubFt4i">外部约束（课多、突发、软件问题）</option>
+            <option value="overload" data-page-node-id="cFlubfLid3McNuRs1C3n4T">任务量超了（三项本来做不完）</option>
+            <option value="motivation" data-page-node-id="mGchZmgQD2m4TPIG1NBQg4">执行问题（拖延、状态差）</option>
+            <option value="none" data-page-node-id="UT9cXM9jRsi63w3xWrNlGO">没有没做完的</option>
+          </select>
+        </div>
+        <div class="field" data-page-node-id="i9QNt2J2Fhlb5JVyaazC3q">
+          <label for="w-next" data-page-node-id="juoiCS38IbuUrnXzH2LGou">5. 下周想保留 / 想砍掉什么</label>
+          <input type="text" id="w-next" placeholder="例：砍掉工具练习，保考试科目诊断" data-page-node-id="mSQImEwdgHDiXLxTjs3LSm">
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end" data-page-node-id="IPTSjQ3zXL0pTLd8EEo7zr">
+        <button class="btn primary" onclick="saveWeek()" id="weekSaveBtn" data-page-node-id="UeSZXL9hMCRR2bDqbijw58">保存周复盘</button>
+      </div>
+      <div id="weekOut" data-page-node-id="YrAQzKk3za77nB8k7D7z2T"></div>
+    </div>
+
+    <div class="card" data-page-node-id="wWiZmU587yM0EqUkn8q1rN">
+      <h2 data-page-node-id="YbpU9vsqJWxGkNnuV5WKMt">连续未完成检查 <button class="info" data-tip="连续两周有任务没完成时，先检查任务量和外部约束，而不是把积压全部顺延。" aria-label="连续两周有任务没完成时，先检查任务量和外部约束，而不是把积压全部顺延。"></button></h2>
+      <div id="debtCheck" data-page-node-id="tGshqxAWCwdoAokFsVRYl3"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 记录趋势 ══════════ -->
+  <section class="panel" id="panel-history" data-page-node-id="bVkKm7gX4CceIADQxIERpB">
+    <div class="card" data-page-node-id="9ylNRvUn6b8cx2pnFJ8R0F">
+      <h2 data-page-node-id="MbGSTxWogFgCxBH7XhZCxk">近 14 天 <span class="tag" data-page-node-id="eccn8CtGzkcAaav7jlx99r">实际投入</span></h2>
+      <div id="trendBox" data-page-node-id="CVMMi1tAGYVMDE4dU6N6VM"></div>
+    </div>
+    <div class="card" data-page-node-id="ajgJib1C6Dd1Rc0ieFFRGp">
+      <h2 data-page-node-id="A5HteicuWLfY7I4AUPwoNB">全部打卡记录</h2>
+      <div id="historyTable" data-page-node-id="9BsqWca4lyFzjuKkl5k7uC"></div>
+    </div>
+    <div class="card" data-page-node-id="nnh1ZEAp6NYCDhs91Ac0Rr">
+      <h2 data-page-node-id="R9QBHhuWwDS398HLtYZbTi">周复盘存档</h2>
+      <div id="weekArchive" data-page-node-id="hNif7Z44Mfgkyrz8BRNjN9"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 节点 ══════════ -->
+  <section class="panel" id="panel-milestones" data-page-node-id="QYzErGRN9LHHNhzGEhGfls">
+    <div class="card" data-page-node-id="9gsuKnJftvEe7b2pwSeTf9">
+      <h2 data-page-node-id="nQ2mbCsNYEKECuin6v26Fm">接下来会发生什么<button class="info" data-tip="带「估算」的日期是按课表周次换算的，须以学校校历和个人考试通知核实。" aria-label="带「估算」的日期是按课表周次换算的，须以学校校历和个人考试通知核实。"></button></h2>
+      <div id="msList" data-page-node-id="BRJNPnwSZedwuKPqZEkXA7"></div>
+    </div>
+    <div class="card" data-page-node-id="6yeas28vfH2J2UMbAsERf9">
+      <h2 data-page-node-id="tmElhaOEA5DMEToRTD5Lw3">已知的信息缺口<button class="info" data-tip="这些不补齐，任何排期都只是猜测；补齐之后计划要重排。" aria-label="这些不补齐，任何排期都只是猜测；补齐之后计划要重排。"></button></h2>
+      <div id="gapList" data-page-node-id="mR2ZaZQzEp9sSQyANbCCHv"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 我的方案：公用部分里唯一由使用者填写的地方 ══════════ -->
+  <section class="panel" id="panel-plan" data-page-node-id="panelPlan00000000000001">
+    <div class="card" data-page-node-id="planCard0000000000001">
+      <div class="card-h" data-page-node-id="planCardH000000000001">
+        <h2 data-page-node-id="planTitle00000000001">我的方案 <span class="tag ic-only" title="这些字段由你填写" data-page-node-id="planTag000000000001"><i class="ic ic-user" aria-hidden="true"></i></span></h2>
+        <span class="save-state" id="planHint" aria-live="polite"></span>
+      </div>
+      <p class="hint">只填你自己的课表、考期与目标（私有数据）<button class="info" data-tip="保存后分析规则会改用你的课程名与日期；不填则一直是占位配置，系统不会替你猜。" aria-label="保存后分析规则会改用你的课程名与日期；不填则一直是占位配置，系统不会替你猜。"></button></p>
+      <div id="planForm"></div>
+    </div>
+    <div class="card" data-page-node-id="planCard0000000000002">
+      <h2>这些字段由助手维护</h2>
+      <p class="hint">里程碑 / 每周任务 / 信息缺口由助手维护：<b id="planMilestoneCount">0</b> 个 · <b id="planGapCount">0</b> 条待补<button class="info" data-tip="这三样是从长期规划里拆出来的，不适合手填。需要改就在对话里说，助手会按规则重排。" aria-label="这三样是从长期规划里拆出来的，不适合手填。需要改就在对话里说，助手会按规则重排。"></button></p>
+    </div>
+  </section>
+
+  <!-- ══════════ 设置：个人资料 + 功能选择 ══════════ -->
+  <section class="panel" id="panel-settings">
+    <div class="card">
+      <div class="card-h">
+        <h2>个人资料 <span class="tag ic-only" title="这些字段由你填写"><i class="ic ic-user" aria-hidden="true"></i></span></h2>
+        <span class="save-state" id="profileHint" aria-live="polite"></span>
+      </div>
+      <p class="hint">全部字段<b>没有默认值</b>，填了才有<button class="info" data-tip="姓名、年级、专业、学校、学习目标都只给你自己看，任何判断规则都不会因为「你是谁」而区别对待；也不会有预置值冒充你填的内容。" aria-label="姓名、年级、专业、学校、学习目标都只给你自己看，任何判断规则都不会因为「你是谁」而区别对待；也不会有预置值冒充你填的内容。"></button></p>
+      <div id="profileForm"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost" id="profileReload">放弃修改</button>
+        <button class="btn primary" id="profileSave">保存个人资料</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>外观主题<button class="info" data-tip="四套配色共用同一套骨架：结构、字号、间距、图表宽度都不变，只换材质与强调色。选完立刻生效，并写进 profile.json。" aria-label="四套配色共用同一套骨架：结构、字号、间距、图表宽度都不变，只换材质与强调色。选完立刻生效，并写进 profile.json。"></button></h2>
+        <span class="save-state" id="themeHint" aria-live="polite"></span>
+      </div>
+      <div id="themeList" class="theme-list" role="radiogroup" aria-label="外观主题"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>功能选择<button class="info" data-tip="整套东西是按「什么都用」写的，但你不一定都要。取消勾选的模块会从页面、分析结论、行动建议里一起消失，不会再提示你去填它。随时可以勾回来。" aria-label="整套东西是按「什么都用」写的，但你不一定都要。取消勾选的模块会从页面、分析结论、行动建议里一起消失，不会再提示你去填它。随时可以勾回来。"></button></h2>
+        <span class="save-state" id="uiHint" aria-live="polite"></span>
+      </div>
+      <p class="hint">取消勾选的模块会从页面、分析结论、行动建议里一起消失<button class="info" data-tip="关掉不是藏起来：规则也不再针对它给结论。代价是那部分判断就没有了，所以只关确实用不上的。" aria-label="关掉不是藏起来：规则也不再针对它给结论。代价是那部分判断就没有了，所以只关确实用不上的。"></button></p>
+      <div class="pick-group">
+        <div class="pick-h">页面（取消勾选会从导航栏收起）</div>
+        <div id="uiTabList" class="pick-list"></div>
+      </div>
+      <div class="pick-group">
+        <div class="pick-h">模块（页面内部的某一块）</div>
+        <div id="uiModList" class="pick-list"></div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost" id="uiAllOn">全部打开</button>
+        <button class="btn primary" id="uiSave">保存显示设置</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>数据在你自己手里</h2>
+      <p class="hint">记录与方案都在本机 <span class="kbd">private/</span>，公开的只有 <span class="kbd">core/</span>
+        <button class="info" data-tip="records.json 存记录、profile.json 存方案。公开出去的 core/ 只有页面与规则，不含这两个文件的任何内容；顶部的「导出全部」可以随时把它们打包带走。" aria-label="records.json 存记录、profile.json 存方案。公开出去的 core/ 只有页面与规则，不含这两个文件的任何内容；顶部的「导出全部」可以随时把它们打包带走。"></button></p>
+    </div>
+  </section>
+
+  <div class="footer-note" data-page-node-id="7phAAHpBKJQPQ17Zz4pGED">
+    <i class="ic ic-lock" aria-hidden="true"></i>
+    <span>记录与方案只在本机，需要口令</span>
+    <button class="info" data-tip="用 http(s) 打开时，记录写入本机 private/records.json，手机与电脑共用同一份；公开的只有 core/ 里的页面与规则，个人方案与记录需要口令才能读。" aria-label="用 http(s) 打开时，记录写入本机 private/records.json，手机与电脑共用同一份；公开的只有 core/ 里的页面与规则，个人方案与记录需要口令才能读。"></button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-page-node-id="V9LBVoO0LTTamS35I0AdBQ"></div>
+
+<!-- 两个私有注入点，都由服务端动态生成，磁盘上不存在对应文件：
+     /profile.js → 使用者的方案（课程、考期、目标、里程碑）
+     /brief.js   → 定时任务每晚写的提醒（包装自 private/brief.json）
+     两者都需口令；缺失时页面退到 app.js 里的通用占位配置，不会白屏。
+     注意顺序：这两个是普通脚本，先执行；app.js 是 module，本来就在解析后执行。 -->
+<script src="/profile.js"></script>
+<script src="/brief.js"></script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

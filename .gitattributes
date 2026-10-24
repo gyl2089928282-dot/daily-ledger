@@ -1,0 +1,15 @@
+# 统一换行：仓库里存 LF，检出时按平台转换。
+* text=auto eol=lf
+
+# Windows 脚本必须 CRLF，否则 cmd.exe / wscript 解析可能出错。
+*.bat  text eol=crlf
+*.vbs  text eol=crlf
+*.cmd  text eol=crlf
+
+# 二进制资源不要做换行转换，也不要尝试 diff。
+*.png   binary
+*.webp  binary
+*.jpg   binary
+*.ico   binary
+*.woff2 binary
+*.zip   binary

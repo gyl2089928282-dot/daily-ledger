@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "private": true,
+  "description": "core/ 内的代码统一用 ES 模块：浏览器直接 import，Node 端也 import，不再有两套模块体系。"
+}

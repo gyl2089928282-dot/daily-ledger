@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>服务器操作台 · 学业台账</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --card: #ffffff;
+    --line: rgba(0,0,0,0.12);
+    --txt: #22201c;
+    --muted: #6b675f;
+    --ok: #3b8f2f;
+    --bad: #c0392b;
+    --warn: #b9770e;
+    --accent: #2f6fed;
+    --mono: "Cascadia Code", "Consolas", "Menlo", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141517;
+      --card: #1e1f23;
+      --line: rgba(255,255,255,0.12);
+      --txt: #e8e6e1;
+      --muted: #9a968c;
+      --ok: #57c14a;
+      --bad: #e06a5a;
+      --warn: #e0a13c;
+      --accent: #5b8ff0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--txt);
+    font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  header.top h1 { font-size: 18px; font-weight: 600; margin: 0; }
+  header.top .sub { color: var(--muted); font-size: 12px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; }
+  button {
+    font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--txt);
+    border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  button:hover { filter: brightness(0.96); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card .k { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .card .v { font-size: 16px; font-weight: 600; word-break: break-all; }
+  .card .v.small { font-size: 13px; font-weight: 400; font-family: var(--mono); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .dot.ok { background: var(--ok); }
+  .dot.bad { background: var(--bad); }
+  .dot.warn { background: var(--warn); }
+  .status-tag { font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); }
+  .status-tag.ok { color: var(--ok); border-color: var(--ok); }
+  .status-tag.bad { color: var(--bad); border-color: var(--bad); }
+  .status-tag.warn { color: var(--warn); border-color: var(--warn); }
+  .section { margin-bottom: 16px; }
+  .section h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; color: var(--muted); }
+  .logbox {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-family: var(--mono); font-size: 12px; line-height: 1.5;
+    max-height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  .logbox.empty { color: var(--muted); }
+  .linkbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .linkbar a, .linkbar .copylink {
+    color: var(--accent); text-decoration: none; font-family: var(--mono); font-size: 13px;
+  }
+  .banner { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid; }
+  .banner.bad { background: rgba(192,57,43,0.08); border-color: var(--bad); color: var(--bad); }
+  .banner.warn { background: rgba(185,119,14,0.08); border-color: var(--warn); color: var(--warn); }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* 运行控制 */
+  .ctrl { border-left: 3px solid var(--accent); }
+  .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .ctrl-state { display: flex; align-items: center; gap: 10px; }
+  .ctrl-label { font-size: 15px; font-weight: 600; }
+  .ctrl-label.st-running { color: var(--ok); }
+  .ctrl-label.st-starting { color: var(--warn); }
+  .ctrl-label.st-stopping { color: var(--bad); }
+  .ctrl-label.st-stopped { color: var(--muted); }
+  .ctrl-actions { display: flex; gap: 8px; }
+  button.danger { background: var(--bad); color: #fff; border-color: transparent; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .ctrl-hint { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .banner.bad { background: rgba(192,57,43,0.08); border-color: var(--bad); color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>服务器操作台</h1>
+      <div class="sub">学业台账 · 运行状态与日志</div>
+    </div>
+    <div class="toolbar">
+      <span class="muted" id="lastUpdate"></span>
+      <button id="refresh" class="primary">刷新</button>
+      <button id="autoref">自动刷新：开</button>
+    </div>
+  </header>
+
+  <div class="banner bad hidden" id="authBanner">
+    没有权限读取服务器状态：请用带 <b>?k=</b> 口令的链接打开本页（例如 <span style="font-family:var(--mono)">/admin.html?k=你的口令</span>）。
+  </div>
+
+  <div class="banner warn hidden" id="downBanner">
+    服务端似乎无响应。如果本页都打不开，说明服务进程本身已经停了——请看电脑上的黑窗口或运行 <b>health-check.bat</b>。
+  </div>
+
+  <div class="banner bad hidden" id="errBanner"></div>
+
+  <div class="section">
+    <div class="card ctrl">
+      <div class="ctrl-row">
+        <div class="ctrl-state">
+          <span class="dot" id="stateDot"></span>
+          <span class="ctrl-label" id="stateLabel">检测中…</span>
+        </div>
+        <div class="ctrl-actions">
+          <button id="btnRestart" class="primary" disabled>重启服务</button>
+          <button id="btnStop" disabled>关闭服务</button>
+        </div>
+      </div>
+      <div class="ctrl-hint" id="ctrlHint"></div>
+    </div>
+  </div>
+
+  <div class="grid" id="cards"></div>
+
+  <div class="section">
+    <h2>手机访问地址</h2>
+    <div class="card">
+      <div class="linkbar" id="links"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>运行日志（最近若干行）</h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr" id="logGrid"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var API = "api/admin";
+  var auto = true;
+  var timer = null;
+  var ctrl = "idle"; // idle | stopping | starting
+  var stopArm = false;
+  var stopArmTimer = null;
+
+  var authBanner = document.getElementById("authBanner");
+  var downBanner = document.getElementById("downBanner");
+  var errBanner = document.getElementById("errBanner");
+  var cards = document.getElementById("cards");
+  var links = document.getElementById("links");
+  var logGrid = document.getElementById("logGrid");
+  var lastUpdate = document.getElementById("lastUpdate");
+  var stateDot = document.getElementById("stateDot");
+  var stateLabel = document.getElementById("stateLabel");
+  var ctrlHint = document.getElementById("ctrlHint");
+  var btnRestart = document.getElementById("btnRestart");
+  var btnStop = document.getElementById("btnStop");
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function dot(cls) { return '<span class="dot ' + cls + '"></span>'; }
+  function tag(cls, text) { return '<span class="status-tag ' + cls + '">' + text + '</span>'; }
+
+  function fmtUptime(s) {
+    if (s == null) return "—";
+    var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    if (d) return d + "天" + h + "时";
+    if (h) return h + "时" + m + "分";
+    return m + "分" + (s % 60) + "秒";
+  }
+
+  function card(k, v, extra) {
+    return '<div class="card"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (extra ? '<div class="muted" style="font-size:11px;margin-top:2px">' + extra + '</div>' : '') + '</div>';
+  }
+
+  function setBusy(busy) {
+    btnRestart.disabled = busy;
+    btnStop.disabled = busy;
+    if (busy) {
+      stopArm = false;
+      if (stopArmTimer) clearTimeout(stopArmTimer);
+      btnStop.classList.remove("danger");
+      btnStop.textContent = "关闭服务";
+    }
+  }
+
+  function setState(cls, text, dotCls, hint) {
+    stateLabel.className = "ctrl-label" + (cls ? " " + cls : "");
+    stateLabel.textContent = text;
+    stateDot.className = "dot " + (dotCls || "warn");
+    ctrlHint.textContent = hint || "";
+  }
+
+  function applyControlState(data) {
+    if (ctrl === "stopping") {
+      setState("st-stopping", "停止中…", "bad", "正在关闭服务，稍后本页将无法再刷新。");
+      setBusy(true);
+      return;
+    }
+    if (ctrl === "starting") {
+      setState("st-starting", "启动中…", "warn", data ? "服务正在重启，短暂离线属正常，请稍候。" : "等待服务重新上线…");
+      setBusy(true);
+      return;
+    }
+    if (!data) {
+      setState("st-stopped", "已停止", "bad", "服务已停止：手机将无法访问。重新启动请在电脑上双击 start.bat（开机自启也会在下次登录时恢复，除非你点了关闭）。");
+      setBusy(true);
+      return;
+    }
+    setBusy(false);
+    var st = data.state;
+    if (st === "running") {
+      setState("st-running", "运行中", "ok", "服务与启动器都正常。关闭前请确认手机端不在使用。");
+      btnRestart.textContent = "重启服务";
+    } else if (st === "paused") {
+      setState("st-stopped", "已暂停", "warn", "服务处于暂停状态。点「启动服务」恢复运行。");
+      btnRestart.textContent = "启动服务";
+    } else {
+      setState("st-running", "运行中（启动器离线）", "warn", "服务还在跑，但守护启动器不在。点「启动服务」恢复自动守护。");
+      btnRestart.textContent = "启动服务";
+    }
+  }
+
+  function render(data) {
+    authBanner.classList.add("hidden");
+    downBanner.classList.add("hidden");
+    applyControlState(data);
+    if (data == null) {
+      if (ctrl === "idle") { downBanner.classList.remove("hidden"); cards.innerHTML = ""; links.innerHTML = ""; logGrid.innerHTML = ""; }
+      return;
+    }
+
+    var s = data.server, d = data.data, la = data.launch, tu = data.tunnel;
+
+    // 服务状态卡
+    var up = tag(s.mode === "locked" ? "ok" : "warn", s.mode === "locked" ? "已上锁" : "开放模式");
+    var launchTag = la.alive ? tag("ok", "运行中") : tag("bad", "未运行");
+    var pubTag = tu.publicOk == null ? tag("warn", "无公网") : (tu.publicOk ? tag("ok", "可访问") : tag("bad", "不通"));
+
+    cards.innerHTML =
+      card("服务进程", dot("ok") + "运行中 · PID " + s.pid, "已运行 " + fmtUptime(s.uptimeSec) + " · Node " + s.node) +
+      card("监听", s.host + ":" + s.port, "内存 " + s.memMB + " MB") +
+      card("口令状态", up, "访问数据需带 ?k=") +
+      card("启动器 launch.js", launchTag, la.alive ? "PID " + la.pid : "窗口可能被关了") +
+      card("公网隧道", pubTag, tu.url ? "见下方地址" : "当前为直连模式") +
+      card("数据量", d.days + " 天 / " + d.weeks + " 周 / " + d.assignments + " 作业", "课程 " + d.courses + " · 方案来源 " + d.profileSource);
+
+    // 地址
+    links.innerHTML = "";
+    if (tu.link) {
+      var a = el("a", "", "手机打开（带口令）");
+      a.href = tu.link; a.target = "_blank"; links.appendChild(a);
+    }
+    if (tu.lan) {
+      var b = el("span", "copylink", "局域网 " + tu.lan);
+      b.title = "点击复制"; b.style.cursor = "pointer";
+      b.onclick = function () { copy(tu.lan); };
+      links.appendChild(b);
+    }
+    if (tu.url) {
+      var c = el("span", "copylink", "公网 " + tu.url);
+      c.title = "点击复制"; c.style.cursor = "pointer";
+      c.onclick = function () { copy(tu.url); };
+      links.appendChild(c);
+    }
+    if (!links.children.length) links.appendChild(el("span", "muted", "还没有地址（服务刚启动或直连模式下尚未生成）"));
+
+    // 日志
+    logGrid.innerHTML = "";
+    var names = { app: "服务日志 app.log", health: "健康检查 health.log", launch: "启动器 launch.log" };
+    for (var key in names) {
+      var box = document.createElement("div");
+      box.className = "logbox" + (data.logs[key] && data.logs[key].length ? "" : " empty");
+      box.textContent = (data.logs[key] && data.logs[key].length) ? data.logs[key].join("\n") : "（暂无）";
+      var sec = el("div", "");
+      sec.appendChild(el("h2", "", names[key]));
+      sec.appendChild(box);
+      logGrid.appendChild(sec);
+    }
+
+    lastUpdate.textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false });
+  }
+
+  function copy(text) {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { flash("已复制 " + text); });
+    else flash(text);
+  }
+  function flash(msg) {
+    lastUpdate.textContent = msg;
+    setTimeout(function () { lastUpdate.textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false }); }, 2000);
+  }
+
+  function showError(msg) {
+    errBanner.classList.remove("hidden");
+    errBanner.textContent = "操作失败：" + msg;
+    setTimeout(function () { errBanner.classList.add("hidden"); }, 6000);
+  }
+
+  function postControl(action) {
+    return fetch("api/admin/" + action, { method: "POST", cache: "no-store" })
+      .then(function (r) {
+        return r.json().then(function (j) { return { status: r.status, body: j }; })
+          .catch(function () { return { status: r.status, body: { ok: false, reason: "无法解析响应 (HTTP " + r.status + ")" } }; });
+      });
+  }
+
+  // 过渡期快速轮询，直到状态落定（running / 已停止）或超时
+  function fastPoll() {
+    var n = 0;
+    (function p() {
+      fetch(API, { cache: "no-store" })
+        .then(function (r) { if (r.status === 401) return null; return r.json(); })
+        .then(function (j) {
+          n++;
+          if (j && j.ok) {
+            if (j.state === "running") { ctrl = "idle"; render(j); return; }
+            render(j);
+            if (n > 40) { ctrl = "idle"; render(j); return; }
+            setTimeout(p, 1200);
+          } else {
+            // 请求失败（服务离线）
+            if (ctrl === "stopping") { ctrl = "idle"; render(null); return; }
+            applyControlState(null);
+            if (n > 40) { ctrl = "idle"; render(null); } else setTimeout(p, 1200);
+          }
+        })
+        .catch(function () {
+          if (ctrl === "stopping") { ctrl = "idle"; render(null); return; }
+          applyControlState(null);
+          if (n > 40) { ctrl = "idle"; render(null); } else setTimeout(p, 1200);
+        });
+    })();
+  }
+
+  function doRestart() {
+    if (ctrl !== "idle") return;
+    ctrl = "starting";
+    applyControlState(null);
+    postControl("restart").then(function (res) {
+      if (!res.body || !res.body.ok) {
+        ctrl = "idle"; applyControlState(null);
+        showError(res.body && res.body.reason ? res.body.reason : ("HTTP " + res.status));
+        return;
+      }
+      fastPoll();
+    }).catch(function (e) {
+      ctrl = "idle"; applyControlState(null); showError(e && e.message ? e.message : "网络错误");
+    });
+  }
+
+  function doStop() {
+    if (ctrl !== "idle") return;
+    ctrl = "stopping";
+    applyControlState(null);
+    postControl("stop").then(function (res) {
+      if (!res.body || !res.body.ok) {
+        ctrl = "idle"; applyControlState(null);
+        showError(res.body && res.body.reason ? res.body.reason : ("HTTP " + res.status));
+        return;
+      }
+      fastPoll();
+    }).catch(function (e) {
+      ctrl = "idle"; applyControlState(null); showError(e && e.message ? e.message : "网络错误");
+    });
+  }
+
+  btnRestart.onclick = function () {
+    if (ctrl !== "idle") return;
+    if (confirm("确定要重启服务吗？\n\n重启期间手机端会短暂断开几秒，之后自动恢复。")) {
+      doRestart();
+    }
+  };
+
+  btnStop.onclick = function () {
+    if (ctrl !== "idle") return;
+    if (!stopArm) {
+      // 第一次点击：进入待确认状态，5 秒内不点第二次就取消
+      stopArm = true;
+      btnStop.classList.add("danger");
+      btnStop.textContent = "确认关闭？5秒内再点一次";
+      stopArmTimer = setTimeout(function () {
+        stopArm = false; btnStop.classList.remove("danger"); btnStop.textContent = "关闭服务";
+      }, 5000);
+      return;
+    }
+    // 第二次点击：真正执行
+    stopArm = false;
+    if (stopArmTimer) clearTimeout(stopArmTimer);
+    btnStop.classList.remove("danger"); btnStop.textContent = "关闭服务";
+    doStop();
+  };
+
+  function load() {
+    fetch(API, { cache: "no-store" })
+      .then(function (r) {
+        if (r.status === 401) { authBanner.classList.remove("hidden"); render(null); throw new Error("401"); }
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (j) { render(j && j.ok ? j : null); })
+      .catch(function (e) {
+        if (e.message === "401") return;
+        if (ctrl === "idle") render(null); else applyControlState(null);
+      });
+  }
+
+  document.getElementById("refresh").onclick = load;
+  document.getElementById("autoref").onclick = function () {
+    auto = !auto;
+    this.textContent = "自动刷新：" + (auto ? "开" : "关");
+    if (auto) startTimer(); else stopTimer();
+  };
+  function startTimer() { if (!timer) timer = setInterval(load, 5000); }
+  function stopTimer() { clearInterval(timer); timer = null; }
+
+  load();
+  startTimer();
+})();
+</script>
+</body>
+</html>

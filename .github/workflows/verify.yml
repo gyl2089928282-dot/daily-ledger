@@ -1,0 +1,70 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rules-and-api:
+    name: 规则 + 接口 · node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: 规则基线（27 项，逐字比对 test/golden/analysis.json）
+        run: npm test
+
+      - name: 接口契约（12 项，自起临时服务与临时私有目录）
+        run: npm run api
+
+  browser:
+    name: 浏览器两层 · node 22
+    runs-on: ubuntu-latest
+    # 这两层依赖真 Chrome + 一个正在跑的实例，比上面两层更容易受环境差异影响。
+    # 首次推上去若这里报红，先看「确认 Chrome 可用」那步的输出；确认稳定后删掉
+    # 下面这行 continue-on-error，让它成为必过项。
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 确认 Chrome 可用
+        run: |
+          ls -l /usr/bin/google-chrome || ls -l /usr/bin/chromium-browser || true
+          /usr/bin/google-chrome --version || true
+
+      - name: 起一个开放模式的临时实例
+        run: |
+          LEDGER_OPEN=1 PORT=3000 node core/server.js > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf --noproxy '*' http://127.0.0.1:3000/api/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf --noproxy '*' http://127.0.0.1:3000/api/health && echo " 服务已就绪"
+
+      - name: 浏览器冒烟（12 项）
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: npm run smoke
+
+      - name: 界面开关（13 项，自起临时实例）
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: npm run ui
+
+      - name: 失败时把服务日志带出来
+        if: failure()
+        run: tail -50 server.log || true

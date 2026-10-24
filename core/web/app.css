@@ -1,0 +1,1547 @@
+/* 由 index.html 内联样式拆出，内容未改。 */
+/* =========================================================================
+   学业台账 · 沙盒主题样式
+   Minecraft 风格的方块界面：石砖底、木牌、书页面板、红石强调。
+   1 令牌  2 基础/材质  3 页头  4 提示条  5 状态条  6 标签页  7 卡片
+   8 表单  9 按钮  10 分析块  11 统计  12 表格  13 时间线  14 作业台账
+   15 杂项/提示  16 我的方案  17 交互状态  18 响应式  19 动效降级/打印
+   改配色只改 1；改方块厚度只改 --px（1 与 2 的倍数关系已固定）
+   ========================================================================= */
+
+/* ---------- 1. 令牌 ---------- */
+/* 像素字体：本项目不附带字体文件（Zpix 为第三方版权字体，禁止再分发与拆分）。
+   装了 Zpix 的机器会自动用上（local 命中），没装则静默回退到 --font 栈里的系统字体。
+   想恢复像素外观：自己装一份 Zpix 即可，无需改代码。详见 NOTICE.md。 */
+@font-face{
+  font-family:"Zpix";
+  src:local("Zpix"),local("Zpix12"),local("Zpix Pixel"),local("Zpix Regular");
+  font-display:swap;
+}
+
+:root{
+  color-scheme: light;
+
+  /* 世界材质 */
+  --cobble:#6C6C6C;          /* 页面底：圆石 */
+  --cobble-2:#585858;
+  --stone:#B4B4B4;           /* 石材面板 */
+  --stone-l:#D6D6D6;
+  --stone-d:#8A8A8A;
+  --stone-deep:#6E6E6E;
+  --frame:#2A2118;           /* 统一描边：黑棕，所有方块共用 */
+  --frame-soft:rgba(42,33,24,.55);
+
+  /* 书页 */
+  --paper:#F3E9CE;
+  --paper-2:#EBDCB8;
+  --paper-3:#DFCDA4;
+  --paper-line:#CBB88E;
+  --ink:#2C2216;
+  --ink-2:#4F4231;
+  --ink-3:#6B5840;
+  --ink-4:#9E8B69;
+
+  /* 木、草、土 */
+  --wood:#9C7443;
+  --wood-l:#C79D64;
+  --wood-d:#6F5129;
+  --dirt:#7C593B;
+  --dirt-2:#684A31;
+  --dirt-3:#8F6B49;
+  --grass:#5D9B3B;
+  --grass-l:#7CBE55;
+  --grass-d:#3D6C26;
+
+  /* 红石 */
+  --rs:#B8342A;
+  --rs-l:#E0503C;
+  --rs-d:#7C1E15;
+  --rs-glow:rgba(224,80,60,.42);
+  --lamp:#FFC44D;
+  --lamp-2:#FFE39B;
+  --lamp-glow:rgba(255,196,77,.45);
+  --on-rs:#FFF4E6;
+  --cream:#EFE4C8;
+  --cream-2:#C9BC9C;
+
+  /* 页签与悬停：单独提出来，暗色下必须换（否则深底深字看不清） */
+  --tab-ink:#33291B;
+  --tab-on:#7C1912;      /* 当前页签的字色：必须比 --rs 更深才在石底上站得住 */
+  --tab-hover:rgba(255,255,255,.34);
+  --paper-hover:#F9F1DC;
+
+  /* 状态 */
+  --warn:#9C5F14; --warn-soft:#F7E4C2; --warn-line:#D3AC70;
+  --bad:#94261B;  --bad-soft:#F4D7D1;  --bad-line:#C8938A;
+  --good:#2C7639; --good-soft:#DCEBCE; --good-line:#A6C68B;
+
+  /* 深度卡片（状态条首格） */
+  --hero-ink:var(--cream);
+  --hero-ink-2:rgba(239,228,200,.88);
+  --hero-track:rgba(0,0,0,.42);
+
+  --toast-bg:#2A2118;
+  --toast-ink:#F6ECD4;
+
+  /* 方块厚度与阴影 */
+  --px:2px;
+  --r-xs:0; --r-sm:0; --r-md:0; --r-lg:0; --r-full:0;
+  --bevel-l:rgba(255,255,255,.40);
+  --bevel-d:rgba(0,0,0,.34);
+  --sh-1:0 2px 0 rgba(0,0,0,.28);
+  --sh-2:0 3px 0 rgba(0,0,0,.30);
+  --sh-3:0 6px 0 rgba(0,0,0,.34);
+  --ring:0 0 0 var(--px) var(--lamp);
+
+  /* 间距 */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:36px;
+
+  --ease:steps(3,end);
+  /* 交互时长：全站只有这三档，换页/组件/提示不会各走各的节奏 */
+  --t-1:90ms;      /* 悬停、按下这类即时反馈 */
+  --t-2:170ms;     /* 面板、列表项进场 */
+  --t-3:280ms;     /* 提示条停留 */
+  --e-out:cubic-bezier(.18,.72,.28,1);
+  --busy-bar:rgba(255,246,224,.9);   /* 等待进度带：比任何按钮底色都亮，两种配色下都看得见 */
+  --font:"Zpix","Zpix Pixel","Fusion Pixel 12px","PingFang SC","Microsoft YaHei",monospace;
+  --mono:"Zpix",ui-monospace,Menlo,Consolas,monospace;
+
+  /* 课程推进度：0 熄灭 · 1 微亮 · 2 通电 · 3 满格 */
+  --lv0:#8A8A8A; --lv0-ink:#F3E9CE;
+  --lv1:#8E5B45; --lv1-ink:#FFE9CF;
+  --lv2:#B8452F; --lv2-ink:#FFF2E2;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    /* 夜晚洞穴：深板岩 */
+    --cobble:#1B1F24;
+    --cobble-2:#14181C;
+    --stone:#3A4048;
+    --stone-l:#4E565F;
+    --stone-d:#2A2F36;
+    --stone-deep:#232830;
+    --frame:#0C0F13;
+    --frame-soft:rgba(0,0,0,.6);
+
+    --paper:#33393F;
+    --paper-2:#2B3137;
+    --paper-3:#252A2F;
+    --paper-line:#4B545D;
+    --ink:#EFE6D0;
+    --ink-2:#C6BFA6;
+    --ink-3:#9EA895;
+    --ink-4:#79836F;
+
+    --wood:#6E5231;
+    --wood-l:#8E6C42;
+    --wood-d:#4A3620;
+    --dirt:#4F3A28;
+    --dirt-2:#41301F;
+    --dirt-3:#5C4530;
+
+    --rs:#D8422F;
+    --rs-l:#F26A52;
+    --rs-d:#8E2418;
+    --rs-glow:rgba(242,106,82,.34);
+    --lamp:#FFCB5C;
+    --lamp-glow:rgba(255,203,92,.34);
+    --on-rs:#1A0E08;
+    --cream:#EFE4C8;
+    --cream-2:#B7AC92;
+
+    --tab-ink:#DED7C4;
+    --tab-on:#FF9A85;
+    --tab-hover:rgba(255,255,255,.13);
+    --paper-hover:#3B434B;
+
+    --warn:#E0A85E; --warn-soft:#3A2E1C; --warn-line:#5E4A2A;
+    --bad:#EE8A7C;  --bad-soft:#3A211D; --bad-line:#5C332C;
+    --good:#8BCB79; --good-soft:#233020; --good-line:#3E5236;
+
+    --hero-ink:#F4EAD2;
+    --toast-bg:#EFE6D0;
+    --toast-ink:#1A140E;
+
+    --bevel-l:rgba(255,255,255,.16);
+    --bevel-d:rgba(0,0,0,.5);
+    --sh-1:0 2px 0 rgba(0,0,0,.45);
+    --sh-2:0 3px 0 rgba(0,0,0,.5);
+    --sh-3:0 6px 0 rgba(0,0,0,.55);
+
+    --lv0:#5A626B;
+    --lv1:#7A4A38;
+    --lv2:#A9472F;
+  }
+}
+
+/* ---------- 2. 基础 / 材质 ---------- */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; padding:0;
+  font:400 13px/1.72 var(--font);
+  color:var(--ink);
+  background-color:var(--cobble);
+  /* 圆石贴图：32px 一块的像素图（textures/cobble.svg 由脚本生成，可替换） */
+  background-image:url("textures/cobble.svg");
+  background-size:32px 32px;
+  background-attachment:fixed;
+  -webkit-font-smoothing:none;
+  text-rendering:geometricPrecision;
+}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+.num{font-variant-numeric:tabular-nums}
+.nowrap{white-space:nowrap}
+.muted{color:var(--ink-3)}
+.dim{color:var(--ink-4)}
+.hidden{display:none!important}
+::selection{background:var(--rs);color:var(--on-rs)}
+:focus-visible{outline:var(--px) solid var(--lamp);outline-offset:2px}
+img,svg{image-rendering:pixelated}
+
+/* 材质工具类：都是 8/16px 的硬边图案，不用渐变过渡 */
+.tex-stone{
+  background-color:var(--stone);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.09) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.07) 0 2px, transparent 2px 4px);
+}
+.tex-paper{
+  background-color:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(120,90,50,.045) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgba(120,90,50,.03) 0 2px, transparent 2px 8px);
+}
+.tex-wood{
+  background-color:var(--wood);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 2px, transparent 2px 32px);
+}
+.tex-dirt{
+  background-color:var(--dirt);
+  background-image:
+    linear-gradient(45deg, var(--dirt-2) 25%, transparent 25%, transparent 75%, var(--dirt-2) 75%),
+    linear-gradient(45deg, var(--dirt-2) 25%, transparent 25%, transparent 75%, var(--dirt-2) 75%);
+  background-size:8px 8px;
+  background-position:0 0, 4px 4px;
+}
+
+.wrap{max-width:1120px;margin:0 auto;padding:var(--sp-5) var(--sp-5) 90px}
+
+/* ---------- 3. 页头 ---------- */
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);
+  flex-wrap:wrap;margin-bottom:var(--sp-4);color:var(--cream);
+}
+.brand{
+  display:flex;align-items:center;gap:var(--sp-3);min-width:0;
+  padding:8px 14px 9px 10px;
+  background-color:var(--wood);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 2px, transparent 2px 28px);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-l),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-d),
+    var(--sh-2);
+}
+/* 草方块：上 10px 草皮 + 泥土，边缘留 2px 锯齿 */
+.mark{
+  width:34px;height:34px;flex:none;position:relative;
+  border:var(--px) solid var(--frame);
+  background-color:var(--dirt);
+  background-image:
+    linear-gradient(180deg, var(--grass-l) 0 4px, var(--grass) 4px 10px, transparent 10px),
+    linear-gradient(45deg, var(--dirt-2) 25%, transparent 25%, transparent 75%, var(--dirt-2) 75%),
+    linear-gradient(45deg, var(--dirt-2) 25%, transparent 25%, transparent 75%, var(--dirt-2) 75%);
+  background-size:100% 100%, 8px 8px, 8px 8px;
+  background-position:0 0, 0 0, 4px 4px;
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(255,255,255,.22),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.30);
+}
+.mark span{display:none}
+h1{
+  font-size:20px;line-height:1.2;font-weight:400;letter-spacing:0;
+  color:var(--cream);
+  text-shadow:2px 2px 0 rgba(0,0,0,.55);
+}
+.sub{font-size:12px;color:#F7E9C9;margin-top:2px;text-shadow:1px 1px 0 rgba(0,0,0,.6)}
+/* 方案里没填学校/专业时，这行是「待填」提示而不是身份信息，压低一点别喧宾夺主 */
+.sub.is-empty{color:#D9C9A3;opacity:.78;font-style:italic}
+.head-right{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;color:var(--cream)}
+
+/* 同步状态：方块指示灯 */
+.sync{
+  display:inline-flex;align-items:center;gap:6px;
+  height:26px;padding:0 9px;
+  font-size:12px;color:var(--cream);
+  background:var(--cobble-2);
+  border:var(--px) solid var(--frame);
+  box-shadow:inset var(--px) var(--px) 0 rgba(0,0,0,.35), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(255,255,255,.12);
+}
+/* 页头两个动作按钮：做成石块小按钮，直接放在石底上读不清 */
+.head-right .btn.ghost{
+  color:var(--cream);height:26px;padding:0 10px;
+  background:var(--cobble-2);border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(255,255,255,.22),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.42);
+  text-shadow:1px 1px 0 rgba(0,0,0,.5);
+}
+.head-right .btn.ghost:hover{background:var(--wood);color:#FFF8E8;border-color:var(--frame)}
+.head-right .btn.ghost:active{
+  box-shadow:inset var(--px) var(--px) 0 rgba(0,0,0,.42), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(255,255,255,.18);
+}
+.sync[hidden]{display:none}
+.sync i{width:8px;height:8px;flex:none;background:var(--ink-4);box-shadow:inset 1px 1px 0 rgba(255,255,255,.4)}
+.sync b{font-weight:400}
+.sync[data-state=ok]{color:#DCEFC8}
+.sync[data-state=ok] i{background:#7DC24B;box-shadow:inset 1px 1px 0 rgba(255,255,255,.55),0 0 6px rgba(125,194,75,.7)}
+.sync[data-state=warn]{color:#F3D9A8}
+.sync[data-state=warn] i{background:var(--lamp);box-shadow:inset 1px 1px 0 rgba(255,255,255,.55),0 0 6px var(--lamp-glow)}
+.sync[data-state=busy] i{background:var(--lamp);animation:blink 1s steps(2,end) infinite}
+.sync[data-state=off] i{background:#6B6B6B}
+@media (prefers-color-scheme: dark){
+  body{background-image:url("textures/cobble-dark.svg")}
+}
+@keyframes blink{50%{opacity:.25}}
+
+/* ---------- 4. 提示条（今晚提醒 / 无权限） ---------- */
+.brief{
+  position:relative;
+  padding:12px 14px 13px 16px;margin-bottom:var(--sp-3);
+  background-color:var(--paper-2);
+  background-image:repeating-linear-gradient(0deg, rgba(120,90,50,.05) 0 1px, transparent 1px 6px);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(255,255,255,.45),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.14),
+    var(--sh-1);
+}
+.brief.hidden{display:none}
+/* 左侧红石线：点状，通电感 */
+.brief::before{
+  content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;
+  background:
+    repeating-linear-gradient(180deg, var(--rs-l) 0 4px, var(--rs-d) 4px 6px);
+  box-shadow:0 0 8px var(--rs-glow);
+}
+/* 无权限：不整块刷成粉色（会破坏材质统一），改用左侧红石警戒斜纹 + 红标题 */
+#authBar{
+  border-color:var(--bad-line);background-color:var(--paper-2);
+  padding-left:22px;
+}
+#authBar::before{
+  width:10px;left:0;top:0;bottom:0;
+  background:repeating-linear-gradient(-45deg, var(--rs) 0 4px, #7C1E15 4px 8px);
+  box-shadow:none;
+}
+#authBar .bb-head{color:var(--bad)}
+#authBar .bb-body{color:var(--ink-2)}
+#authBar .bb-body b{color:var(--ink);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.bb-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:6px;font-size:12px;color:var(--ink-2);
+}
+.bb-t{font-size:12px;color:var(--bad);letter-spacing:0}
+.bb-acts{display:flex;align-items:center;gap:4px}
+.bb-x{
+  border:var(--px) solid transparent;background:transparent;color:var(--ink-3);
+  width:22px;height:22px;font-size:13px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;padding:0;
+}
+.bb-x:hover{border-color:var(--frame);background:var(--paper-3);color:var(--ink)}
+.bb-body{font-size:12px;line-height:1.85;color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+.bb-body b{color:var(--ink)}
+
+/* ---------- 5. 状态条：背包格子 ---------- */
+.strip{
+  display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:var(--px);
+  background:var(--frame);border:var(--px) solid var(--frame);
+  box-shadow:var(--sh-2);margin-bottom:var(--sp-4);
+}
+/* 没配专项的人少一格，栅格跟着收一列，不留空洞 */
+.strip.no-focus{grid-template-columns:1.5fr 1fr 1fr}
+.ts-cell{
+  background-color:var(--paper);
+  background-image:repeating-linear-gradient(0deg, rgba(120,90,50,.04) 0 1px, transparent 1px 6px);
+  padding:12px 14px;min-width:0;position:relative;
+}
+.ts-cell:not(.hero):hover{background-color:var(--paper-2)}
+.ts-k{font-size:12px;color:var(--ink-3);margin-bottom:4px}
+.ts-v{
+  font-size:22px;font-weight:400;line-height:1.15;color:var(--ink);
+  font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 rgba(255,255,255,.55);
+}
+.ts-v small{font-size:12px;color:var(--ink-3);margin-left:2px;text-shadow:none}
+.ts-v.alert{color:var(--bad);text-shadow:1px 1px 0 rgba(255,255,255,.5)}
+.ts-v.soon{color:var(--warn);text-shadow:1px 1px 0 rgba(255,255,255,.5)}
+.ts-d{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-3);margin-top:4px}
+.ts-d .dot{width:6px;height:6px;flex:none;box-shadow:inset 1px 1px 0 rgba(255,255,255,.45)}
+.dot.bad{background:var(--bad)} .dot.ok{background:#7DC24B}
+
+/* 首格：草方块，整页的锚点 */
+.ts-cell.hero{
+  display:flex;flex-direction:column;justify-content:space-between;gap:10px;
+  padding-top:26px;           /* 让文字落在草皮之下，不然压在草上读不清 */
+  color:var(--hero-ink);
+  background-color:var(--dirt);
+  background-image:
+    linear-gradient(180deg, var(--grass-l) 0 5px, var(--grass) 5px 13px, transparent 13px),
+    repeating-linear-gradient(45deg, rgba(0,0,0,.11) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.05) 0 4px, transparent 4px 8px);
+  background-size:100% 18px, 8px 8px, 8px 8px;
+  background-position:0 0, 0 0, 4px 4px;
+  background-repeat:no-repeat, repeat, repeat;
+  text-shadow:2px 2px 0 rgba(0,0,0,.5);
+}
+/* 草皮与泥土之间的锯齿 */
+.ts-cell.hero::before{
+  content:"";position:absolute;left:0;right:0;top:13px;height:5px;
+  background:repeating-linear-gradient(90deg, var(--grass) 0 4px, transparent 4px 8px);
+  opacity:.9;
+}
+.ts-cell.hero>*{position:relative;z-index:1}
+.ts-cell.hero .ts-k{color:var(--hero-ink-2);text-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.ts-date{
+  font-size:28px;font-weight:400;line-height:1.05;margin:2px 0 1px;
+  color:var(--hero-ink);letter-spacing:0;
+}
+.ts-date .sl{opacity:.5;margin:0 1px}
+.ts-hero-sub{font-size:12px;color:var(--hero-ink-2)}
+.ts-usage-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px;color:var(--hero-ink-2);text-shadow:none}
+.ts-usage-row b{font-size:12px;color:var(--hero-ink);font-weight:400}
+.ts-usage-row b small{font-size:12px;opacity:.7;font-weight:400}
+.ts-usage .bar{
+  height:6px;margin-top:6px;
+  background:var(--hero-track);
+  box-shadow:inset 1px 1px 0 rgba(0,0,0,.5);
+}
+.ts-usage .bar>span{
+  background:repeating-linear-gradient(90deg, var(--lamp-2) 0 3px, var(--lamp) 3px 6px);
+  box-shadow:0 0 8px var(--lamp-glow);
+}
+
+/* ---------- 6. 标签页：石块按钮，选中即高亮 ---------- */
+.tabs{
+  position:sticky;top:6px;z-index:40;
+  display:flex;align-items:center;gap:var(--px);padding:4px;
+  background-color:var(--stone);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.10) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 2px, transparent 2px 4px);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-l),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-d),
+    var(--sh-2);
+  margin-bottom:var(--sp-4);
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+/* 两个变量让「点完回到哪」只写一次：未选中回透明底，选中回浅底红字。
+   动画的最后一帧引这两个变量，所以结束后不会闪一下再跳掉。 */
+.tabs button{
+  --tab-bg:transparent;
+  --tab-fg:var(--tab-ink);
+  position:relative;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  border:0;background:var(--tab-bg);cursor:pointer;
+  padding:6px 12px;
+  font-size:12px;color:var(--tab-fg);
+  transition:color .1s steps(2,end), background .1s steps(2,end);
+}
+.tabs button svg{width:16px;height:16px;flex:none;shape-rendering:crispEdges;opacity:.85}
+.tabs button:hover:not(.on){color:var(--ink);background:var(--tab-hover)}
+/* 当前页：浅底 + 红字 + 一道内描边。不再有整块红石垫在底下，
+   但「在哪一页」比看滑块停在哪更直接——亮着的那一格就是。 */
+.tabs button.on{
+  --tab-bg:var(--tab-hover);
+  --tab-fg:var(--tab-on);
+  box-shadow:
+    inset 0 0 0 var(--px) var(--frame-soft),
+    inset 0 0 0 calc(var(--px) * 2) rgba(255,255,255,.16);
+  text-shadow:none;
+}
+.tabs button.on:hover{--tab-bg:var(--tab-hover)}
+.tabs button.on svg{opacity:1}
+/* 点击反馈：按下瞬间整格闪成红石，再落回目标态（选中就落回浅底，没选中就落回透明）。
+   steps 曲线保持像素味，不拖半透明残影；0% 那一帧就是「点到了」的回应。 */
+.tabs button.tap{animation:tabTap .24s steps(4,end) 1}
+@keyframes tabTap{
+  0%{
+    background-color:var(--rs);color:var(--on-rs);
+    box-shadow:
+      inset var(--px) var(--px) 0 var(--rs-l),
+      inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--rs-d),
+      0 0 10px var(--rs-glow);
+  }
+  50%{background-color:var(--rs);color:var(--on-rs)}
+  100%{background-color:var(--tab-bg);color:var(--tab-fg);box-shadow:none}
+}
+.tabs button .badge{
+  min-width:16px;height:16px;padding:0 4px;
+  display:inline-grid;place-items:center;
+  font-size:12px;line-height:1;
+  background:var(--lamp);color:var(--frame);border:1px solid var(--frame);
+}
+.tabs button.on .badge{background:var(--cream);color:var(--frame)}
+
+.panel{display:none}
+/* 换页：新内容淡入 + 上浮 5px。用 opacity/transform 两个合成层属性，
+   不触发布局，所以不会把滚动条顶来顶去 */
+.panel.on{display:block;animation:panelIn var(--t-2) var(--e-out) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------- 7. 卡片：书页 ---------- */
+.card{
+  background-color:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(120,90,50,.04) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgba(120,90,50,.025) 0 2px, transparent 2px 8px);
+  border:var(--px) solid var(--frame);
+  padding:16px 18px;margin-bottom:var(--sp-3);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(255,255,255,.42),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.12),
+    var(--sh-1);
+}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin-bottom:4px;flex-wrap:wrap}
+.card h2{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:15px;font-weight:400;line-height:1.5;color:var(--ink);
+  text-shadow:1px 1px 0 rgba(255,255,255,.5);
+}
+.card h2+.tag{margin-left:0}
+.tag{
+  display:inline-flex;align-items:center;
+  font-size:12px;color:var(--ink-2);
+  background:var(--paper-3);border:var(--px) solid var(--paper-line);
+  padding:0 6px;line-height:18px;
+}
+.tag.acc{background:var(--rs);color:var(--on-rs);border-color:var(--rs-d)}
+.hint{font-size:12px;line-height:1.85;color:var(--ink-3);margin:6px 0 14px}
+.hint b{color:var(--ink-2);font-weight:400;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.sub-h{font-size:12px;color:var(--ink-2);margin:16px 0 8px;padding-left:8px;border-left:4px solid var(--rs)}
+.hr{
+  height:2px;margin:16px 0;border:0;
+  background:repeating-linear-gradient(90deg, var(--paper-line) 0 4px, transparent 4px 8px);
+}
+
+/* ---------- 8. 表单：铁砧输入槽 ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field>label,.lbl{
+  display:block;font-size:12px;color:var(--ink-2);
+  margin-bottom:5px;
+}
+
+/* 所有文本类控件统一成同一块「铁砧槽」：不限定 type，
+   页面里有不写 type 的 input，限定 type 会漏掉它们（会退回浏览器默认白底 1px 边） */
+input,select,textarea{
+  width:100%;padding:7px 8px;
+  font:inherit;font-size:13px;color:var(--ink);
+  background:var(--paper-2);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(0,0,0,.16),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(255,255,255,.5);
+  appearance:none;-webkit-appearance:none;
+  transition:none;
+}
+input[type=file]{display:none}
+input[type=checkbox],input[type=radio]{width:auto;appearance:auto;-webkit-appearance:auto}
+input:hover,select:hover,textarea:hover{background:var(--paper-hover)}
+input:focus,select:focus,textarea:focus{
+  outline:none;background:var(--paper);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(0,0,0,.14),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(255,255,255,.5),
+    0 0 0 var(--px) var(--lamp);
+}
+/* 占位文字要明显比真填的内容浅：一眼就能看出「这格还空着」，避免把示例当成预置值 */
+input::placeholder,textarea::placeholder{color:var(--ink-4);opacity:.7}
+/* 日期：藏掉原生细线日历图标，换成像素方块图标（点击区域仍在） */
+input[type=date]{
+  cursor:pointer;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cpath fill='%235D4B31' d='M2 0h2v2H2zM8 0h2v2H8zM1 2h10v1H1zM1 3h1v8H1zM10 3h1v8h-1zM1 10h10v1H1zM1 4h10v1H1zM3 6h2v2H3zM7 6h2v2H7z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+input[type=date]::-webkit-calendar-picker-indicator{
+  opacity:0;cursor:pointer;width:20px;height:20px;margin-right:-2px;
+}
+input[type=date]::-webkit-datetime-edit{padding:0}
+@media (prefers-color-scheme: dark){
+  input[type=date]{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cpath fill='%23C8BFA8' d='M2 0h2v2H2zM8 0h2v2H8zM1 2h10v1H1zM1 3h1v8H1zM10 3h1v8h-1zM1 10h10v1H1zM1 4h10v1H1zM3 6h2v2H3zM7 6h2v2H7z'/%3E%3C/svg%3E");
+  }
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%23C8BFA8' d='M0 2h2v2H0zM2 4h2v2H2zM4 6h2v2H4zM6 4h2v2H6zM8 2h2v2H8z'/%3E%3C/svg%3E");
+  }
+}
+textarea{resize:vertical;min-height:64px;line-height:1.8}
+select{
+  cursor:pointer;padding-right:26px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%234F4231' d='M0 2h2v2H0zM2 4h2v2H2zM4 6h2v2H4zM6 4h2v2H6zM8 2h2v2H8z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;
+}
+
+/* 课程推进度：四段拉杆，选中的一段亮起 */
+.course-line{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:2px solid transparent;
+  border-image:repeating-linear-gradient(90deg, var(--paper-line) 0 4px, transparent 4px 8px) 2;
+}
+.course-line:last-child{border-bottom:0}
+.course-line .nm{flex:1;min-width:0}
+.course-line .nm b{display:block;font-size:13px;font-weight:400;color:var(--ink)}
+.course-line .nm .meta{font-size:12px;color:var(--ink-3);margin-top:1px}
+.seg{
+  display:flex;gap:var(--px);flex:none;padding:2px;
+  background:var(--paper-3);
+  border:var(--px) solid var(--frame);
+  box-shadow:inset 1px 1px 0 rgba(0,0,0,.18);
+}
+.seg button{
+  border:0;background:transparent;cursor:pointer;
+  padding:4px 9px;
+  font-size:12px;color:var(--ink-3);white-space:nowrap;
+  transition:background .1s steps(2,end), color .1s steps(2,end);
+}
+.seg button:hover{background:rgba(255,255,255,.45);color:var(--ink-2)}
+.seg button.on{color:var(--on-rs);box-shadow:none}
+.seg button.on.lv0{background:var(--lv0);color:var(--lv0-ink)}
+.seg button.on.lv1{background:var(--lv1);color:var(--lv1-ink)}
+.seg button.on.lv2{background:var(--lv2);color:var(--lv2-ink)}
+.seg button.on.lv3{
+  background:var(--rs);color:var(--on-rs);
+  box-shadow:inset 2px 2px 0 var(--rs-l), inset -2px -2px 0 var(--rs-d), 0 0 8px var(--rs-glow);
+}
+
+/* 保存状态：小型指示灯 */
+.save-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3)}
+.save-state:empty{display:none}
+.save-state::before{content:"";width:8px;height:8px;background:var(--ink-4);box-shadow:inset 1px 1px 0 rgba(255,255,255,.4)}
+.save-state[data-state=ok]{color:var(--good)}
+.save-state[data-state=ok]::before{background:#7DC24B;box-shadow:0 0 6px rgba(125,194,75,.7)}
+.save-state[data-state=dirty]{color:var(--warn)}
+.save-state[data-state=dirty]::before{background:var(--lamp);animation:blink 1.4s steps(2,end) infinite}
+
+/* ---------- 9. 按钮：石按钮 / 红石块 ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:13px;color:var(--ink);white-space:nowrap;
+  padding:6px 12px;cursor:pointer;text-decoration:none;
+  background-color:var(--stone);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.10) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.07) 0 2px, transparent 2px 4px);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-l),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-d),
+    var(--sh-1);
+  transition:none;
+}
+.btn:hover{background-color:var(--stone-l)}
+.btn:active{
+  transform:translateY(2px);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-d),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-l),
+    0 0 0 rgba(0,0,0,0);
+}
+.btn svg{width:14px;height:14px;flex:none;shape-rendering:crispEdges}
+.btn.primary{
+  background-color:var(--rs);
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.10) 0 2px, transparent 2px 4px);
+  color:var(--on-rs);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--rs-l),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--rs-d),
+    var(--sh-1), 0 0 10px var(--rs-glow);
+  text-shadow:1px 1px 0 rgba(0,0,0,.35);
+}
+.btn.primary:hover{background-color:#C93F31}
+.btn.primary.flashing{background-color:#4E9A3A;box-shadow:inset var(--px) var(--px) 0 #7DC24B, inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 #2C6820}
+.btn.ghost{
+  background:transparent;border-color:transparent;box-shadow:none;color:inherit;
+}
+.btn.ghost:hover{background:rgba(0,0,0,.16);border-color:var(--frame)}
+.btn.danger{color:var(--bad);background-color:#E8D3C8;background-image:none}
+.btn.danger:hover{background-color:var(--bad-soft)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.xs{padding:2px 6px;font-size:12px}
+
+/* ---------- 10. 分析块：红石信号面板 ---------- */
+.analysis{
+  position:relative;margin-bottom:8px;padding:10px 12px 11px 14px;
+  background:var(--paper-2);
+  border:var(--px) solid var(--paper-line);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.4);
+}
+.analysis:last-child{margin-bottom:0}
+.analysis::before{
+  content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;
+  background:repeating-linear-gradient(180deg, var(--rs-l) 0 4px, var(--rs-d) 4px 6px);
+}
+.analysis .t{font-size:12px;color:var(--warn);margin-bottom:3px}
+.analysis .b{font-size:12px;line-height:1.9;color:var(--ink-2)}
+.analysis .b b{color:var(--ink);font-weight:400;background:rgba(255,196,77,.35);padding:0 1px}
+.analysis.warn{background:var(--warn-soft);border-color:var(--warn-line)}
+.analysis.warn::before{background:repeating-linear-gradient(180deg, var(--warn) 0 4px, #6B3F0C 4px 6px)}
+.analysis.warn .t{color:var(--warn)}
+.analysis.bad{background:var(--bad-soft);border-color:var(--bad-line)}
+.analysis.bad::before{background:repeating-linear-gradient(180deg, var(--bad) 0 4px, #5E1710 4px 6px)}
+.analysis.bad .t{color:var(--bad)}
+.analysis.good{background:var(--good-soft);border-color:var(--good-line)}
+.analysis.good::before{background:repeating-linear-gradient(180deg, var(--good) 0 4px, #1B4C24 4px 6px)}
+.analysis.good .t{color:var(--good)}
+
+ul.acts{margin:0;padding:0;list-style:none;counter-reset:a}
+ul.acts>li{
+  counter-increment:a;position:relative;
+  padding:9px 0 10px 30px;
+  font-size:12px;line-height:1.85;color:var(--ink-2);
+  border-bottom:2px solid transparent;
+  border-image:repeating-linear-gradient(90deg, var(--paper-line) 0 4px, transparent 4px 8px) 2;
+}
+ul.acts>li:last-child{border-bottom:0;padding-bottom:2px}
+ul.acts>li::before{
+  content:counter(a);position:absolute;left:0;top:9px;
+  width:20px;height:20px;
+  background:var(--rs);color:var(--on-rs);
+  font-size:12px;line-height:20px;text-align:center;
+  border:1px solid var(--frame);
+  box-shadow:inset 1px 1px 0 var(--rs-l), inset -1px -1px 0 var(--rs-d);
+}
+ul.acts>li .why{display:block;font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.7}
+ul.plain{margin:0;padding-left:16px;font-size:12px;color:var(--ink-2);line-height:1.95}
+ul.plain li{margin-bottom:4px}
+ul.plain li::marker{color:var(--rs)}
+
+/* ---------- 11. 统计：物品栏格子 ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:var(--sp-2)}
+.stat{
+  background:var(--paper-2);
+  border:var(--px) solid var(--paper-line);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.45);
+  padding:9px 11px;
+  transition:none;
+}
+.stat:hover{background:var(--paper);border-color:var(--frame-soft)}
+.stat .k{font-size:12px;color:var(--ink-3);margin-bottom:2px}
+.stat .v{
+  font-size:20px;font-weight:400;line-height:1.2;color:var(--ink);
+  font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 rgba(255,255,255,.45);
+}
+.stat .v small{font-size:12px;color:var(--ink-3);margin-left:2px;text-shadow:none}
+.stat .d{font-size:12px;color:var(--ink-3);margin-top:3px}
+.stat.hl{background:var(--paper-3);border-color:var(--frame)}
+.stat.hl .v{color:var(--ink)}
+.stat.bad{background:var(--bad-soft);border-color:var(--bad-line)}
+.stat.bad .v{color:var(--bad)}
+.stat.warn{background:var(--warn-soft);border-color:var(--warn-line)}
+.stat.warn .v{color:var(--warn)}
+
+/* 红石线路：轨道是暗槽，充能段发亮 */
+.bar{
+  height:8px;margin-top:7px;overflow:hidden;
+  background:#3A2E20;
+  box-shadow:inset 1px 1px 0 rgba(0,0,0,.6), inset -1px -1px 0 rgba(255,255,255,.18);
+}
+.bar>span{
+  display:block;height:100%;
+  background:repeating-linear-gradient(90deg, var(--rs-l) 0 3px, var(--rs) 3px 6px);
+  box-shadow:0 0 8px var(--rs-glow);
+  transition:width .3s steps(6,end);
+}
+.bar>span.over{background:repeating-linear-gradient(90deg, var(--bad) 0 3px, #6B1C13 3px 6px)}
+.bar>span.low{background:repeating-linear-gradient(90deg, var(--lamp-2) 0 3px, var(--lamp) 3px 6px)}
+
+/* ---------- 12. 表格 ---------- */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{
+  text-align:left;font-size:12px;font-weight:400;color:var(--ink-3);
+  padding:4px 8px 6px;border-bottom:var(--px) solid var(--paper-line);
+  background:var(--paper-2);
+}
+td{
+  text-align:left;padding:8px;vertical-align:top;line-height:1.75;
+  border-bottom:1px solid var(--paper-line);
+  color:var(--ink-2);
+}
+tbody tr:hover{background:var(--paper-2)}
+tbody tr:last-child td{border-bottom:0}
+.t-detail{font-size:12px;color:var(--ink-3);margin-top:2px}
+
+.pill{
+  display:inline-flex;align-items:center;white-space:nowrap;
+  font-size:12px;padding:0 6px;line-height:18px;
+  border:1px solid var(--frame-soft);
+}
+.pill.ok{background:var(--good-soft);color:var(--good);border-color:var(--good-line)}
+.pill.no{background:var(--paper-3);color:var(--ink-3);border-color:var(--paper-line)}
+.pill.w{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.pill.b{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.pill.acc{background:var(--rs);color:var(--on-rs);border-color:var(--rs-d)}
+
+.empty{
+  padding:22px 14px;text-align:center;font-size:12px;line-height:1.9;color:var(--ink-3);
+  background:var(--paper-2);
+  border:var(--px) dashed var(--paper-line);
+}
+.empty b{display:block;font-size:13px;font-weight:400;color:var(--ink-2);margin-bottom:3px}
+
+/* ---------- 13. 时间线：竖直红石线 ---------- */
+.timeline{position:relative;padding-left:22px;margin-top:6px}
+.timeline::before{
+  content:"";position:absolute;left:8px;top:6px;bottom:10px;width:4px;
+  background:repeating-linear-gradient(180deg, var(--rs) 0 5px, var(--rs-d) 5px 9px);
+  box-shadow:0 0 6px var(--rs-glow);
+  opacity:.85;
+}
+.tl-item{position:relative;padding-bottom:14px;font-size:12px}
+.tl-item:last-child{padding-bottom:0}
+/* 节点方块居中压在红石线上：line 中心 = 22-14+…，实测 10px */
+.tl-item::before{
+  content:"";position:absolute;left:-17px;top:5px;
+  width:10px;height:10px;
+  background:var(--paper-3);
+  border:var(--px) solid var(--frame);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.5);
+}
+.tl-item.hot::before{background:var(--bad);box-shadow:0 0 8px rgba(148,38,27,.55)}
+.tl-item.soon::before{background:var(--lamp);box-shadow:0 0 8px var(--lamp-glow)}
+.tl-item .dt{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tl-item .tt{font-weight:400;color:var(--ink);margin-top:1px}
+.tl-item .meta{font-size:12px;color:var(--ink-3);margin-top:1px}
+.tl-item.past{opacity:.5}
+
+/* ---------- 14. 作业台账 ---------- */
+.asg-stat{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.asg-add{display:grid;grid-template-columns:150px 1fr 140px 84px auto;gap:var(--sp-2);align-items:center}
+.asg-add input,.asg-add select,.asg-add .btn{height:34px}
+.asg-add .btn{padding:0 14px}
+
+.course-block{margin-top:14px}
+.course-block:first-child{margin-top:0}
+.cb-head{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 0 7px;margin-bottom:2px;
+  border-bottom:var(--px) solid var(--paper-line);
+}
+.cb-head .dot{width:8px;height:8px;flex:none;background:var(--rs);box-shadow:inset 1px 1px 0 var(--rs-l)}
+.cb-head .nm{font-size:13px;font-weight:400;color:var(--ink)}
+.cb-head .cnt{display:flex;align-items:center;gap:7px;margin-left:auto;font-size:12px;color:var(--ink-3)}
+
+.asg{
+  display:flex;align-items:flex-start;gap:9px;
+  padding:8px 6px 8px 7px;
+  border-bottom:1px solid var(--paper-line);
+  transition:none;
+}
+.asg:last-child{border-bottom:0}
+.asg:hover{background:var(--paper-2)}
+/* 逾期：斜纹警戒条 */
+.asg.od{
+  background:
+    repeating-linear-gradient(135deg, rgba(148,38,27,.075) 0 6px, transparent 6px 12px),
+    var(--paper);
+  box-shadow:inset 3px 0 0 var(--bad);
+}
+.asg.od:hover{background:repeating-linear-gradient(135deg, rgba(148,38,27,.12) 0 6px, transparent 6px 12px), var(--paper-2)}
+
+/* 勾选框 = 红石灯：熄灭是暗红石，点亮是暖光 */
+.chk{
+  width:18px;height:18px;flex:none;margin-top:2px;padding:0;cursor:pointer;
+  background-color:var(--paper-3);
+  background-image:
+    radial-gradient(circle at 30% 30%, var(--rs-d) 0 2px, transparent 2px),
+    radial-gradient(circle at 70% 60%, var(--rs-d) 0 2px, transparent 2px);
+  border:var(--px) solid var(--frame);
+  box-shadow:inset var(--px) var(--px) 0 rgba(0,0,0,.28), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(255,255,255,.35);
+  display:grid;place-items:center;
+  transition:none;
+}
+.chk:hover{background-color:var(--paper-2);border-color:var(--rs-d)}
+.chk:active{transform:translateY(1px)}
+.chk.done{
+  background-color:var(--lamp);
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.25) 0 2px, transparent 2px 4px);
+  border-color:var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 rgba(255,255,255,.6),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.22),
+    0 0 10px var(--lamp-glow);
+}
+.chk.done::after{
+  content:"";width:12px;height:12px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cpath fill='%232C2216' d='M1 6h2v2H1zM3 8h2v2H3zM5 6h2v2H5zM7 4h2v2H7zM9 2h2v2H9z'/%3E%3C/svg%3E") center/12px 12px no-repeat;
+}
+.asg-main{flex:1;min-width:0}
+.asg-title{font-size:13px;color:var(--ink);line-height:1.6;word-break:break-word}
+.asg.done-row .asg-title{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--ink-4)}
+.asg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);margin-top:2px}
+.asg-meta .sep{color:var(--paper-line)}
+.asg-meta .od-t{color:var(--bad)}
+.asg-meta .soon-t{color:var(--warn)}
+.asg-acts{display:flex;gap:2px;flex:none;opacity:0;transition:opacity .1s steps(2,end)}
+.asg:hover .asg-acts,.asg:focus-within .asg-acts{opacity:1}
+@media(hover:none){.asg-acts{opacity:1}}
+.asg-edit{
+  background:var(--paper-2);
+  border:var(--px) solid var(--frame);
+  padding:12px;margin:2px 0 10px 27px;
+}
+.asg-edit .grid3{margin-bottom:9px}
+.asg-edit input,.asg-edit select,.asg-edit textarea{font-size:12px;padding:5px 7px}
+
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fchip{
+  font-size:12px;padding:3px 10px;cursor:pointer;user-select:none;
+  background:var(--paper-2);color:var(--ink-2);
+  border:var(--px) solid var(--paper-line);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.45);
+}
+.fchip:hover{background:var(--paper-3);border-color:var(--frame-soft)}
+.fchip.on{
+  background:var(--rs);color:var(--on-rs);border-color:var(--rs-d);
+  box-shadow:inset 2px 2px 0 var(--rs-l), inset -2px -2px 0 var(--rs-d), 0 0 8px var(--rs-glow);
+}
+
+.wk-item{padding:11px 0;border-bottom:2px solid transparent;border-image:repeating-linear-gradient(90deg, var(--paper-line) 0 4px, transparent 4px 8px) 2}
+.wk-item:last-child{border-bottom:0;padding-bottom:0}
+.wk-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.wk-head b{font-size:13px;font-weight:400;color:var(--ink)}
+.wk-line{font-size:12px;margin-top:3px;color:var(--ink-2);line-height:1.8}
+.wk-line span{color:var(--ink-3);margin-right:4px}
+
+/* 14 天趋势：柱状方块 */
+.trend-wrap{
+  display:flex;align-items:flex-end;gap:4px;height:124px;margin:14px 0 4px;padding-bottom:2px;
+  border-bottom:2px solid var(--paper-line);
+  /* 三条横向刻度，空数据时图也不至于空白一片 */
+  background-image:repeating-linear-gradient(0deg, rgba(120,90,50,.09) 0 1px, transparent 1px 41px);
+}
+.trend-col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}
+.trend-val{font-size:12px;color:var(--ink-3);height:14px;line-height:14px}
+.trend-bar{
+  width:100%;
+  background-color:var(--rs);
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 2px, transparent 2px 4px);
+  box-shadow:inset 2px 2px 0 var(--rs-l), inset -2px 0 0 var(--rs-d);
+  transition:height .3s steps(6,end);
+}
+.trend-bar.high{background-color:#8E2418}
+.trend-bar.zero{
+  min-height:8px;                        /* 没记录也留一个方块槽，否则整张图看着是空的 */
+  background-color:var(--paper-3);
+  background-image:repeating-linear-gradient(135deg, rgba(90,70,44,.22) 0 2px, transparent 2px 4px);
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.35), inset -2px -2px 0 rgba(0,0,0,.10);
+}
+.trend-bar.today{box-shadow:inset 2px 2px 0 var(--rs-l), inset -2px 0 0 var(--rs-d), 0 0 0 var(--px) var(--lamp)}
+.trend-bar:hover{filter:brightness(1.25)}
+.trend-x{display:flex;gap:4px}
+.trend-x>div{flex:1;min-width:0;text-align:center;font-size:12px;color:var(--ink-4);font-variant-numeric:tabular-nums}
+
+/* ---------- 15. 杂项 / 提示 ---------- */
+.note{
+  font-size:12px;line-height:1.85;color:var(--ink-3);
+  background:var(--paper-2);
+  border:var(--px) solid var(--paper-line);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.4);
+  padding:9px 11px;margin-top:10px;
+}
+.note b{color:var(--ink-2);font-weight:400}
+.note.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+.note.good{background:var(--good-soft);border-color:var(--good-line);color:var(--good)}
+.note.bad{background:var(--bad-soft);border-color:var(--bad-line);color:var(--bad)}
+.kbd{
+  font-family:var(--mono);font-size:12px;padding:0 4px;
+  background:var(--paper-3);border:1px solid var(--paper-line);color:var(--ink-2);
+}
+/* 页脚：挂在页面底部的一块木牌（石头底上直接排字会糊成一片） */
+.footer-note{
+  display:flex;align-items:center;gap:7px;width:fit-content;margin:var(--sp-5) auto 0;
+  padding:10px 20px 11px;
+  font-size:12px;line-height:2;text-align:center;color:#FBF1D8;
+  /* 用深木：浅木色上排 12px 奶油字只有 3.1:1，看不清 */
+  background-color:var(--wood-d);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 2px, transparent 2px 28px);
+  border:var(--px) solid var(--frame);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-l),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-d),
+    var(--sh-2);
+  text-shadow:1px 1px 0 rgba(0,0,0,.55);
+}
+.footer-note .kbd{background:rgba(0,0,0,.32);border:1px solid rgba(0,0,0,.5);color:#FFF1D2}
+
+/* 提示 = 进度成就框 */
+.toast{
+  position:fixed;left:50%;bottom:24px;z-index:99;
+  display:flex;align-items:center;gap:8px;
+  max-width:84vw;padding:8px 14px 10px;
+  background:var(--toast-bg);color:var(--toast-ink);
+  font-size:12px;line-height:1.6;
+  border:var(--px) solid var(--lamp);
+  box-shadow:0 0 0 var(--px) var(--frame), var(--sh-3);
+  opacity:0;pointer-events:none;overflow:hidden;
+  transform:translateX(-50%) translateY(10px);
+  transition:opacity var(--t-2) var(--e-out), transform var(--t-2) var(--e-out);
+}
+/* 图标：方形色块，ok=红石黄，warn=赭红 */
+.toast::before{content:"";width:8px;height:8px;flex:none;background:var(--lamp);box-shadow:inset 1px 1px 0 rgba(255,255,255,.6)}
+/* 停留进度：和 2800ms 的自动关闭同步，倒着走完就消失 */
+.toast::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:currentColor;opacity:.3;transform:scaleX(0);transform-origin:left;
+}
+.toast[data-type=warn]{border-color:var(--bad)}
+.toast[data-type=warn]::before{background:var(--bad)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.show::after{animation:toastBar 2800ms linear both}
+@keyframes toastBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+/* 连续触发时只轻轻顶一下，不重播进场（重播会闪） */
+.toast.bump{animation:toastBump 200ms var(--e-out) 1}
+@keyframes toastBump{50%{transform:translateX(-50%) translateY(-3px) scale(1.015)}}
+
+/* ---------- 16. 我的方案 ---------- */
+.plan-row{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.plan-row input{min-width:0}
+/* 删课按钮：小号红石按钮，别做成一片惨白 */
+.plan-row .btn{
+  background-color:var(--bad-soft);background-image:none;color:var(--bad);
+  border:var(--px) solid var(--bad-line);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.45), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0,0,0,.14);
+  padding:0 9px;height:32px;
+}
+.plan-row .btn:hover{background-color:var(--bad);color:var(--on-rs);border-color:var(--rs-d)}
+.pi-name,.pi-slot{font-size:12px}
+.pi-exam{font-size:12px}
+@media (max-width:560px){
+  .plan-row{grid-template-columns:1fr 1fr}
+  .plan-row .pi-name{grid-column:1/-1}
+  .plan-row .pi-del{grid-column:2/3;justify-self:end}
+}
+
+/* ---------- 17. 交互状态：悬停 / 按下 / 等待 / 成功 / 失败 ----------
+   规则：颜色瞬切（像素风不该有半透明中间色），只有位移与透明度走过渡。
+   这样既有回弹手感，又不会因为过渡拖出残影或闪一格。 */
+
+/* 1) 所有可点元素共用同一套手感 */
+.fchip{display:inline-block}   /* span 默认是 inline，transform 不生效 */
+.btn,.tabs button,.seg button,.fchip,.chk,.bb-x,.pi-del{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--t-1) var(--e-out), box-shadow var(--t-1) var(--e-out);
+}
+.tabs button:active,.seg button:active,.fchip:active,.chk:active,.bb-x:active,.pi-del:active{
+  transform:translateY(1px);
+}
+/* 石按钮压得更深：bevel 反向 + 落下去 2px，和方块厚度一致 */
+.btn:active{
+  transform:translateY(2px);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--bevel-d),
+    inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--bevel-l),
+    0 0 0 rgba(0,0,0,0);
+}
+.plan-row .btn:active{transform:translateY(2px)}
+
+/* 2) 不可用：变灰、断掉一切位移，鼠标给出理由 */
+.btn:disabled,.btn[aria-disabled="true"],.seg button:disabled,.fchip[aria-disabled="true"]{
+  opacity:.42;cursor:not-allowed;filter:saturate(.45);
+  transform:none;box-shadow:none;
+}
+.btn:disabled:active,.fchip[aria-disabled="true"]:active{transform:none}
+
+/* 3) 等待中：底部跑一条像素进度带（熔炉那种），不改变按钮宽度所以不抖 */
+.btn.is-busy,.fchip.is-busy,.btn[aria-busy="true"]{
+  pointer-events:none;cursor:progress;position:relative;overflow:hidden;
+}
+.btn.is-busy::after,.fchip.is-busy::after{
+  content:"";position:absolute;left:2px;right:2px;bottom:2px;height:4px;
+  background:repeating-linear-gradient(90deg, var(--busy-bar) 0 4px, transparent 4px 8px);
+  opacity:.75;animation:march 460ms linear infinite;
+}
+@keyframes march{to{background-position:8px 0}}
+
+/* 4) 成功 / 失败：描边往外扩一圈，失败再抖两下。
+   用 outline 而不是 box-shadow，不会把方块的 bevel 顶掉；
+   颜色保持到 80% 再退，中途不会淡成半透明 */
+.flash-ok{animation:okFlash 640ms var(--e-out) 1}
+@keyframes okFlash{
+  0%{outline:3px solid var(--good);outline-offset:1px}
+  30%{outline:3px solid var(--good);outline-offset:4px}
+  80%{outline:3px solid var(--good);outline-offset:5px}
+  100%{outline:3px solid transparent;outline-offset:8px}
+}
+.flash-err{animation:errFlash 520ms var(--e-out) 1}
+@keyframes errFlash{
+  0%{outline:3px solid var(--bad);outline-offset:1px;transform:translateX(0)}
+  16%{transform:translateX(-3px)}
+  32%{transform:translateX(3px);outline:3px solid var(--bad);outline-offset:3px}
+  48%{transform:translateX(-2px)}
+  64%{transform:translateX(2px)}
+  80%{transform:translateX(0);outline:3px solid var(--bad);outline-offset:4px}
+  100%{transform:translateX(0);outline:3px solid transparent;outline-offset:6px}
+}
+
+/* 5) 字段没填对：红框 + 红环，改一下就自动消 */
+input.is-invalid,select.is-invalid,textarea.is-invalid{
+  border-color:var(--bad);
+  box-shadow:inset var(--px) var(--px) 0 rgba(0,0,0,.14), 0 0 0 2px rgba(184,52,42,.3);
+}
+input.is-invalid:focus,select.is-invalid:focus,textarea.is-invalid:focus{
+  box-shadow:inset var(--px) var(--px) 0 rgba(0,0,0,.14), 0 0 0 var(--px) var(--bad);
+}
+
+/* 6) 列表项：新增滑入；勾完让红石灯亮一下；删除先收再走 */
+.asg.is-new{animation:rowIn var(--t-2) var(--e-out) both}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.asg .chk.is-hit{animation:lampHit 560ms var(--e-out) 1}
+@keyframes lampHit{
+  0%{outline:3px solid var(--lamp);outline-offset:1px}
+  60%{outline:3px solid var(--lamp);outline-offset:4px}
+  100%{outline:3px solid transparent;outline-offset:7px}
+}
+.asg.is-removing{pointer-events:none;overflow:hidden;opacity:0;transform:translateX(10px);
+  transition:height 150ms var(--e-out), opacity 150ms var(--e-out), transform 150ms var(--e-out)}
+
+/* 7) 分析结果逐块进场：只有刚生成时才播，切换页签不会重播 */
+#analysisOut>.card{animation:panelIn var(--t-2) var(--e-out) both}
+#analysisOut>.card:nth-child(2){animation-delay:60ms}
+/* 作业行的编辑面板：展开时淡入，收起是瞬时的（display:none 没法过渡） */
+.asg-edit:not(.hidden){animation:panelIn var(--t-2) var(--e-out) both}
+
+/* 8) 触屏：没有 hover，就把点击热区放大，反馈靠 :active */
+@media (hover:none){
+  .chk{width:22px;height:22px}
+  .seg button{padding:7px 10px}
+  .fchip{padding:6px 11px}
+  .tabs button{padding:8px 12px}
+  .bb-x{width:28px;height:28px}
+  .asg-acts{opacity:1}
+}
+
+/* ---------- 18. 响应式 ---------- */
+@media(max-width:900px){
+  .asg-add{grid-template-columns:1fr 1fr}
+  .asg-add .btn{grid-column:1/-1}
+}
+@media(max-width:820px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .strip{grid-template-columns:1fr 1fr 1fr}
+  .strip.no-focus{grid-template-columns:1fr 1fr}
+  .ts-cell.hero{grid-column:1/-1}
+}
+@media(max-width:620px){
+  .wrap{padding:14px 12px 72px}
+  .card{padding:14px 12px}
+  .brand{padding:6px 10px 7px 8px}
+  h1{font-size:18px}
+  .course-line{flex-wrap:wrap;gap:7px}
+  .course-line .seg{width:100%}
+  .seg button{flex:1;padding:5px 0}
+  .asg-add{grid-template-columns:1fr}
+  .tabs button{padding:6px 9px}
+  .tabs button svg{display:none}
+  .asg-edit{margin-left:0}
+  .ts-date{font-size:24px}
+  .ts-v{font-size:20px}
+  .trend-wrap{height:104px}
+}
+
+/* ---------- 20. 设置页 · 功能选择的勾选表 ---------- */
+.pick-group{margin:6px 0 14px}
+.pick-h{font-size:12px;color:var(--ink-2);margin:0 0 8px;padding-left:8px;border-left:4px solid var(--rs)}
+.pick-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:760px){ .pick-list{grid-template-columns:1fr} }
+.pick-row{
+  display:flex;gap:9px;align-items:flex-start;cursor:pointer;
+  padding:8px 10px;background:var(--paper-2);
+  border:var(--px) solid var(--frame-soft);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.42);
+}
+.pick-row:hover{background:var(--paper-3)}
+.pick-row input[type=checkbox]{margin:2px 0 0;flex:0 0 auto;width:15px;height:15px;accent-color:var(--rs)}
+.pick-txt{display:block;min-width:0}
+.pick-txt b{display:block;font-weight:400;font-size:13px;color:var(--ink)}
+.pick-txt i{display:block;font-style:normal;font-size:11.5px;line-height:1.7;color:var(--ink-3);margin-top:2px}
+.pick-row input[type=checkbox]:not(:checked) ~ .pick-txt b{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-4)}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .tabs,.head-right,.toast,.brief,.asg-acts,.btn,.footer-note{display:none!important}
+  .card,.ts-cell,.stat{box-shadow:none;border-color:#999;background:#fff}
+  .card{break-inside:avoid}
+}
+
+/* ---------- 21. 主题：一套骨架，四套材质 ----------
+   做法：主题**只覆盖令牌**，不碰任何结构、尺寸、间距选择器。
+   所以换主题不会引起一次重排，页面高度、页签位置、图表柱宽全都不变，
+   也就不存在「换个配色把布局换坏了」这种事。
+
+   默认主题 stone 不写在这里：它就是 :root 那套（含系统暗色偏好）。
+   其余三套各自是完整调色板——把系统暗色偏好也一并压掉，
+   否则「雪原」在深色系统下会变成一半深一半浅的拼接色。
+   ------------------------------------------------------------------ */
+
+/* 下界 · 熔岩：深玄武岩底 + 岩浆橙强调。整体是暗色主题 */
+html[data-theme="nether"]{
+  color-scheme: dark;
+
+  --cobble:#2B1A17;
+  --cobble-2:#1E1210;
+  --stone:#553A33;
+  --stone-l:#6B4A41;
+  --stone-d:#3E2823;
+  --stone-deep:#33201C;
+  --frame:#0D0706;
+  --frame-soft:rgba(0,0,0,.62);
+
+  --paper:#2E211D;
+  --paper-2:#261A17;
+  --paper-3:#1F1513;
+  --paper-line:#4C332B;
+  --ink:#F6E6D6;
+  --ink-2:#DCC3AE;
+  --ink-3:#B09582;
+  --ink-4:#8A7161;
+
+  --wood:#5E3A24;
+  --wood-l:#7E5233;
+  --wood-d:#3E2415;
+  --dirt:#4A2A1E;
+  --dirt-2:#3A2016;
+  --dirt-3:#5C3626;
+  --grass:#8E2E14;
+  --grass-l:#C24A1E;
+  --grass-d:#5C1A0A;
+
+  --rs:#E04A1A;
+  --rs-l:#FF7A3C;
+  --rs-d:#8E2A08;
+  --rs-glow:rgba(255,110,50,.42);
+  --lamp:#FFB43C;
+  --lamp-2:#FFD48A;
+  --lamp-glow:rgba(255,180,60,.42);
+  --on-rs:#1A0A05;
+  --cream:#F8E8D4;
+  --cream-2:#C9A98C;
+
+  --tab-ink:#E8D2BE;
+  --tab-on:#FFB43C;      /* 下界：点亮的页签用余烬黄，红石橙在深底上读不清 */
+  --tab-hover:rgba(255,255,255,.12);
+  --paper-hover:#38261F;
+
+  --warn:#F0B45E; --warn-soft:#3A2A15; --warn-line:#6B4A22;
+  --bad:#FF8A70;  --bad-soft:#3E1A14; --bad-line:#7A2E22;
+  --good:#8FD97A; --good-soft:#22301A; --good-line:#3E5530;
+
+  --hero-ink:#FFE9D8;
+  --hero-ink-2:rgba(255,233,216,.85);
+  --hero-track:rgba(0,0,0,.55);
+
+  --toast-bg:#F6E6D6;
+  --toast-ink:#1A0E09;
+
+  --bevel-l:rgba(255,255,255,.14);
+  --bevel-d:rgba(0,0,0,.55);
+  --sh-1:0 2px 0 rgba(0,0,0,.5);
+  --sh-2:0 3px 0 rgba(0,0,0,.55);
+  --sh-3:0 6px 0 rgba(0,0,0,.6);
+
+  --lv0:#5A4038; --lv0-ink:#F6E6D6;
+  --lv1:#8E4A2E; --lv1-ink:#FFE8D6;
+  --lv2:#C2521F; --lv2-ink:#1A0A05;
+
+  --busy-bar:rgba(255,236,210,.95);
+}
+html[data-theme="nether"] body{background-image:url("textures/basalt.svg")}
+
+/* 雪原 · 云杉：雪块与浮冰，冷蓝灰底 + 冰蓝强调 */
+html[data-theme="snow"]{
+  color-scheme: light;
+
+  --cobble:#C7D5DF;
+  --cobble-2:#AFC1CE;
+  --stone:#DFE9F0;
+  --stone-l:#F2F8FC;
+  --stone-d:#C6D5DF;
+  --stone-deep:#AEBFCB;
+  --frame:#1D2A33;
+  --frame-soft:rgba(29,42,51,.5);
+
+  --paper:#FBFDFF;
+  --paper-2:#F1F6FA;
+  --paper-3:#E3EDF4;
+  --paper-line:#C2D3DF;
+  --ink:#16232C;
+  --ink-2:#334756;
+  --ink-3:#55707F;
+  --ink-4:#85A0B0;
+
+  --wood:#6B5A47;
+  --wood-l:#8A7660;
+  --wood-d:#4A3D2E;
+  --dirt:#8FA3B1;
+  --dirt-2:#7C91A0;
+  --dirt-3:#A3B6C3;
+  --grass:#EAF3F9;
+  --grass-l:#FFFFFF;
+  --grass-d:#C9DBE7;
+
+  --rs:#2A6FA8;
+  --rs-l:#4A94CC;
+  --rs-d:#17496F;
+  --rs-glow:rgba(74,148,204,.34);
+  --lamp:#7FD2E8;
+  --lamp-2:#B7EAF6;
+  --lamp-glow:rgba(127,210,232,.42);
+  --on-rs:#F2FAFF;
+  --cream:#F4FAFF;
+  --cream-2:#C4D4DF;
+
+  --tab-ink:#22333F;
+  --tab-on:#1C5583;
+  --tab-hover:rgba(255,255,255,.55);
+  --paper-hover:#FFFFFF;
+
+  --warn:#8A5A12; --warn-soft:#FBEFD2; --warn-line:#D9BC82;
+  --bad:#A32A1C;  --bad-soft:#F8DDD7; --bad-line:#D0A199;
+  --good:#1F6B47; --good-soft:#DCF0E3; --good-line:#9FC8B0;
+
+  --hero-ink:#F4FAFF;
+  --hero-ink-2:rgba(244,250,255,.9);
+  --hero-track:rgba(22,35,44,.4);
+
+  --toast-bg:#1D2A33;
+  --toast-ink:#F2F8FC;
+
+  --bevel-l:rgba(255,255,255,.7);
+  --bevel-d:rgba(29,42,51,.28);
+  --sh-1:0 2px 0 rgba(29,42,51,.22);
+  --sh-2:0 3px 0 rgba(29,42,51,.24);
+  --sh-3:0 6px 0 rgba(29,42,51,.28);
+
+  --lv0:#B9C9D5; --lv0-ink:#16232C;
+  --lv1:#83A9BF; --lv1-ink:#0E2532;
+  --lv2:#2A6FA8; --lv2-ink:#EAF6FF;
+
+  --busy-bar:rgba(255,255,255,.95);
+}
+html[data-theme="snow"] body{background-image:url("textures/snow.svg")}
+
+/* 沙漠 · 砂岩：暖砂底 + 陶土橙强调 */
+html[data-theme="sand"]{
+  color-scheme: light;
+
+  --cobble:#D6C49C;
+  --cobble-2:#BFA97F;
+  --stone:#E6D6B0;
+  --stone-l:#F5E9C9;
+  --stone-d:#D2BF95;
+  --stone-deep:#BFAA7F;
+  --frame:#33281A;
+  --frame-soft:rgba(51,40,26,.5);
+
+  --paper:#FCF6E4;
+  --paper-2:#F6ECCF;
+  --paper-3:#EDDFBB;
+  --paper-line:#CFBA8C;
+  --ink:#2E2416;
+  --ink-2:#4F4028;
+  --ink-3:#776242;
+  --ink-4:#9C865F;
+
+  --wood:#A87A3F;
+  --wood-l:#C99A58;
+  --wood-d:#7A5526;
+  --dirt:#B08A56;
+  --dirt-2:#96733F;
+  --dirt-3:#C4A06A;
+  --grass:#C9A55F;
+  --grass-l:#E3C583;
+  --grass-d:#8F7038;
+
+  --rs:#B4552A;
+  --rs-l:#D97A45;
+  --rs-d:#7C3512;
+  --rs-glow:rgba(217,122,69,.34);
+  --lamp:#E8B23C;
+  --lamp-2:#F7D98C;
+  --lamp-glow:rgba(232,178,60,.4);
+  --on-rs:#FFFFFF;
+  --cream:#FDF6E4;
+  --cream-2:#D9C69C;
+
+  --tab-ink:#3A2D1A;
+  --tab-on:#8E3F1C;
+  --tab-hover:rgba(255,255,255,.5);
+  --paper-hover:#FFFCF2;
+
+  --warn:#8A5A12; --warn-soft:#FAEFD2; --warn-line:#D9BC82;
+  --bad:#96301C;  --bad-soft:#F7DCD3; --bad-line:#CB9A8C;
+  --good:#3B6B2A; --good-soft:#E2EED4; --good-line:#A9C48C;
+
+  --hero-ink:#FFF6E8;
+  --hero-ink-2:rgba(255,246,232,.9);
+  --hero-track:rgba(51,40,26,.4);
+
+  --toast-bg:#2E2416;
+  --toast-ink:#FCF6E4;
+
+  --bevel-l:rgba(255,255,255,.55);
+  --bevel-d:rgba(51,40,26,.3);
+  --sh-1:0 2px 0 rgba(51,40,26,.24);
+  --sh-2:0 3px 0 rgba(51,40,26,.26);
+  --sh-3:0 6px 0 rgba(51,40,26,.3);
+
+  --lv0:#CBB891; --lv0-ink:#2E2416;
+  --lv1:#B98A5A; --lv1-ink:#FFF6E8;
+  --lv2:#B4552A; --lv2-ink:#FFF6E8;
+
+  --busy-bar:rgba(255,247,231,.95);
+}
+html[data-theme="sand"] body{background-image:url("textures/sand.svg")}
+
+/* 主题选择器：设置页里的一排「迷你世界」预览 */
+.theme-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px}
+@media(max-width:760px){ .theme-list{grid-template-columns:1fr} }
+.theme-row{
+  display:flex;align-items:center;gap:11px;cursor:pointer;text-align:left;
+  padding:8px 10px;background:var(--paper-2);color:var(--ink);
+  border:var(--px) solid var(--frame-soft);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.42);
+  transition:transform var(--t-1) var(--e-out);
+}
+.theme-row:hover{background:var(--paper-3)}
+.theme-row:active{transform:translateY(1px)}
+.theme-row.on{
+  border-color:var(--rs);
+  box-shadow:inset var(--px) var(--px) 0 rgba(255,255,255,.42), 0 0 0 var(--px) var(--rs-glow);
+}
+/* 缩略图：底色 + 一张卡片 + 一条强调色，就是这套主题的形状。
+   卡片只占左边 2/3，右边的世界底色才露得出来——四套一眼能分开，靠的就是这块底色 */
+.theme-sw{
+  position:relative;flex:none;width:46px;height:32px;
+  background-color:var(--sw-bg);background-image:var(--sw-tex);background-size:12px 12px;
+  border:var(--px) solid var(--frame);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.35);
+}
+.theme-sw::before{
+  content:"";position:absolute;left:4px;right:15px;top:4px;bottom:9px;
+  background:var(--sw-paper);
+  border:var(--px) solid rgba(0,0,0,.45);
+}
+.theme-sw::after{
+  content:"";position:absolute;left:4px;right:4px;bottom:3px;height:4px;
+  background:var(--sw-accent);
+}
+.theme-txt{min-width:0}
+.theme-txt b{display:block;font-weight:400;font-size:13px;color:var(--ink)}
+.theme-txt i{display:block;font-style:normal;font-size:11.5px;line-height:1.65;color:var(--ink-3);margin-top:2px}
+.theme-row.on .theme-txt b::after{content:" · 当前";color:var(--rs);font-size:11.5px}
+
+/* 打印：白纸黑字，底纹一律不进纸 */
+@media print{
+  html[data-theme] body{background-image:none!important;background:#fff}
+  .theme-list{display:none}
+}
+
+/* ---------- 22. 符号承载：图标 + 悬停说明 ----------
+   页面上原来有 20 多段 2–4 行的解释文字，占掉大量纵向空间，读起来也累。
+   这里把它们分成两类处理：
+     · 结论、数字口径、错误原因、空状态  → 仍然写在页面上，一个字都不藏；
+     · 「为什么 / 会怎样 / 怎么接」这类解释 → 收进图标，悬停或键盘聚焦时展开。
+   图标一律是 12×12 的像素图，用 mask 上色（跟着 currentColor 走），所以四套主题自动跟随。 */
+
+.ic{
+  display:inline-block;flex:none;width:14px;height:14px;
+  background-color:currentColor;
+  -webkit-mask:var(--ic) center / contain no-repeat;
+  mask:var(--ic) center / contain no-repeat;
+}
+.ic-q{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M4 0h4v1H4zM3 1h2v1H3zM7 1h2v1H7zM3 2h2v1H3zM7 2h2v1H7zM6 3h2v1H6zM5 4h2v1H5zM4 5h2v1H4zM4 6h2v1H4zM4 8h2v1H4zM4 9h2v1H4z%27/%3E%3C/svg%3E")}
+.ic-i{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M5 1h2v1H5zM5 2h2v1H5zM5 4h2v1H5zM5 5h2v1H5zM5 6h2v1H5zM5 7h2v1H5zM5 8h2v1H5z%27/%3E%3C/svg%3E")}
+.ic-clock{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M3 1h6v1H3zM2 2h2v1H2zM8 2h2v1H8zM1 3h2v1H1zM5 3h2v1H5zM9 3h2v1H9zM1 4h1v1H1zM5 4h2v1H5zM10 4h1v1H10zM1 5h1v1H1zM5 5h2v1H5zM10 5h1v1H10zM1 6h1v1H1zM5 6h5v1H5zM11 6h1v1H11zM1 7h2v1H1zM9 7h2v1H9zM2 8h2v1H2zM8 8h2v1H8zM3 9h6v1H3z%27/%3E%3C/svg%3E")}
+.ic-lock{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M4 1h4v1H4zM4 2h1v1H4zM7 2h1v1H7zM3 3h2v1H3zM7 3h2v1H7zM2 4h8v1H2zM2 5h1v1H2zM9 5h1v1H9zM2 6h1v1H2zM5 6h2v1H5zM9 6h1v1H9zM2 7h1v1H2zM5 7h2v1H5zM9 7h1v1H9zM2 8h1v1H2zM9 8h1v1H9zM2 9h8v1H2z%27/%3E%3C/svg%3E")}
+.ic-copy{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M2 1h7v1H2zM2 2h1v1H2zM8 2h1v1H8zM2 3h1v1H2zM8 3h1v1H8zM2 4h1v1H2zM5 4h7v1H5zM2 5h1v1H2zM5 5h1v1H5zM10 5h1v1H10zM2 6h1v1H2zM5 6h1v1H5zM10 6h1v1H10zM2 7h4v1H2zM10 7h1v1H10zM5 8h1v1H5zM10 8h1v1H10zM5 9h6v1H5z%27/%3E%3C/svg%3E")}
+.ic-dl{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M5 0h2v1H5zM5 1h2v1H5zM5 2h2v1H5zM2 3h7v1H2zM3 4h5v1H3zM4 5h3v1H4zM5 6h1v1H5zM1 8h9v1H1z%27/%3E%3C/svg%3E")}
+.ic-flag{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M2 0h2v1H2zM2 1h8v1H2zM2 2h1v1H2zM9 2h1v1H9zM2 3h1v1H2zM9 3h1v1H9zM2 4h1v1H2zM9 4h1v1H9zM2 5h1v1H2zM2 6h1v1H2zM2 7h1v1H2zM2 8h1v1H2zM2 9h2v1H2z%27/%3E%3C/svg%3E")}
+.ic-user{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M4 0h4v1H4zM4 1h4v1H4zM3 3h6v1H3zM2 4h8v1H2zM2 5h8v1H2zM2 6h8v1H2z%27/%3E%3C/svg%3E")}
+
+/* 解释图标：标题或字段旁边一个问号，悬停展开。用 button 是为了键盘也能聚焦 */
+.info{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;flex:none;padding:0;margin:0;
+  color:var(--ink-3);background:transparent;border:0;cursor:help;
+  transition:color var(--t-1) var(--e-out), background-color var(--t-1) var(--e-out);
+}
+/* 问号直接用伪元素画：带 data-tip 的按钮不必再塞一个 <i> */
+.info::before{
+  content:"";display:block;width:13px;height:13px;background-color:currentColor;
+  -webkit-mask:var(--ic) center / contain no-repeat;
+  mask:var(--ic) center / contain no-repeat;
+}
+.info{--ic:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23000%27 d=%27M4 0h4v1H4zM3 1h2v1H3zM7 1h2v1H7zM3 2h2v1H3zM7 2h2v1H7zM6 3h2v1H6zM5 4h2v1H5zM4 5h2v1H4zM4 6h2v1H4zM4 8h2v1H4zM4 9h2v1H4z%27/%3E%3C/svg%3E")}
+.info:hover,.info:focus-visible{color:var(--ink);background:var(--paper-3)}
+.info:active{transform:translateY(1px)}
+
+/* 带图标的标签：只有符号，字收进 title */
+.tag.ic-only{padding:0 5px;gap:1px}
+.tag.ic-only .ic{width:12px;height:12px;opacity:.85}
+
+/* 悬停层：单例、fixed 定位，所以不会被吸顶条/滚动容器裁掉 */
+#tip{
+  position:fixed;left:0;top:0;z-index:200;
+  max-width:min(38ch,46vw);
+  padding:7px 10px 8px;
+  font-size:12px;line-height:1.8;letter-spacing:0;
+  color:var(--toast-ink);background:var(--toast-bg);
+  border:var(--px) solid var(--lamp);
+  box-shadow:0 0 0 var(--px) var(--frame), var(--sh-2);
+  opacity:0;pointer-events:none;transform:translateY(2px);
+  transition:opacity var(--t-1) var(--e-out), transform var(--t-1) var(--e-out);
+}
+#tip.on{opacity:1;transform:none}
+#tip b{font-weight:400;color:var(--rs)}
+html[data-theme="nether"] #tip{border-color:var(--rs)}
+@media print{ #tip{display:none} }
+@media (max-width:620px){
+  #tip{max-width:min(30ch,72vw);font-size:12px}
+}
+
+/* 说明文字被收进图标之后，剩下的那一行要跟鞋标、图例排得下 */
+.note-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.hint .info{vertical-align:-4px;margin-left:2px}
+.card h2 .info{margin-left:-2px}
+/* 页脚那块木牌上的图标与文字同色，跟着主题走 */
+.footer-note .ic{opacity:.85}
+.footer-note .info{color:#FBF1D8}
+.footer-note .info:hover,.footer-note .info:focus-visible{color:#2E2416;background:#FBF1D8}
+
+/* 图例：一小块和柱体同样的斜纹，替掉原来那句「灰柱 = 当天没打卡」的纯文字 */
+.legend{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{
+  width:10px;height:10px;flex:none;
+  background-color:var(--paper-3);
+  background-image:repeating-linear-gradient(135deg, rgba(90,70,44,.22) 0 2px, transparent 2px 4px);
+  border:1px solid var(--paper-line);
+}
